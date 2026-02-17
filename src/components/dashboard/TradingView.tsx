@@ -7,6 +7,7 @@ import OrderForm from './OrderForm';
 import TradeHistory from './TradeHistory';
 import MarketInfo from './MarketInfo';
 import PriceAlerts from '../alerts/PriceAlerts';
+import OpenOrders from '../orders/OpenOrders';
 import { fetchLivePrice } from '../../services/geminiService';
 
 const FALLBACK_PRICES: Record<string, number> = {
@@ -102,6 +103,7 @@ const TradingView: React.FC<TradingViewProps> = ({ market, appConfig }) => {
 
       <div className="hidden xl:flex flex-col gap-4 min-h-0 overflow-auto">
         <MarketInfo market={market} />
+        <OpenOrders currentPrice={currentPrice} market={market.id} />
         <PriceAlerts currentPrices={currentPrices} />
       </div>
 

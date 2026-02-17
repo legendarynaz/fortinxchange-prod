@@ -8,14 +8,15 @@ import CheckCircleIcon from '../icons/CheckCircleIcon';
 import SunIcon from '../icons/SunIcon';
 import MoonIcon from '../icons/MoonIcon';
 import { useTheme } from '../../context/ThemeContext';
+import CurrencySelector from '../ui/CurrencySelector';
 
 
 interface HeaderProps {
   selectedMarket: Market;
   onMarketChange: (market: Market) => void;
-  onNavigate: (view: 'trade' | 'wallet' | 'history' | 'settings') => void;
+  onNavigate: (view: 'trade' | 'wallet' | 'history' | 'settings' | 'referral') => void;
   onLogout: () => void;
-  currentView: 'trade' | 'wallet' | 'history' | 'settings';
+  currentView: 'trade' | 'wallet' | 'history' | 'settings' | 'referral';
   isKycVerified: boolean;
 }
 
@@ -99,7 +100,10 @@ const Header: React.FC<HeaderProps> = ({ selectedMarket, onMarketChange, onNavig
         <NavButton onClick={() => onNavigate('trade')} isActive={currentView === 'trade'}>Trade</NavButton>
         <NavButton onClick={() => onNavigate('wallet')} isActive={currentView === 'wallet'}>Wallet</NavButton>
         <NavButton onClick={() => onNavigate('history')} isActive={currentView === 'history'}>History</NavButton>
+        <NavButton onClick={() => onNavigate('referral')} isActive={currentView === 'referral'}>Referral</NavButton>
         <NavButton onClick={() => onNavigate('settings')} isActive={currentView === 'settings'}>Settings</NavButton>
+        
+        <CurrencySelector />
         
         <button
           onClick={toggleTheme}

@@ -5,6 +5,7 @@ import TradingView from './components/dashboard/TradingView';
 import WalletView from './components/wallet/WalletView';
 import TransactionHistory from './components/history/TransactionHistory';
 import SettingsView from './components/settings/SettingsView';
+import ReferralSystem from './components/referral/ReferralSystem';
 import AuthView from './components/auth/AuthView';
 import Chatbot from './components/chatbot/Chatbot';
 import KYCView from './components/kyc/KYCView';
@@ -16,7 +17,7 @@ import { MARKETS } from './constants';
 import ChatBubbleIcon from './components/icons/ChatBubbleIcon';
 import { getAppConfig, getTransactions, saveTransactions } from './services/configService';
 
-type View = 'trade' | 'wallet' | 'history' | 'settings';
+type View = 'trade' | 'wallet' | 'history' | 'settings' | 'referral';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -139,6 +140,14 @@ const App: React.FC = () => {
       )}
       {currentView === 'settings' && (
         <SettingsView userEmail={user?.email || ''} />
+      )}
+      {currentView === 'referral' && (
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">Referral Program</h1>
+            <ReferralSystem />
+          </div>
+        </main>
       )}
       
       <div className="fixed bottom-6 right-6 z-50">

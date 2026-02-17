@@ -3,9 +3,10 @@ import type { Market } from '../../types';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { Tabs } from '../ui/Tabs';
+import { addOrder } from '../orders/OpenOrders';
 
 type OrderSide = 'buy' | 'sell';
-type OrderType = 'market' | 'limit';
+type OrderType = 'market' | 'limit' | 'stop' | 'stop-limit';
 
 interface OrderFormProps {
     market: Market;
@@ -17,6 +18,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ market, price, setPrice }) => {
   const [side, setSide] = useState<OrderSide>('buy');
   const [type, setType] = useState<OrderType>('limit');
   const [amount, setAmount] = useState('');
+  const [stopPrice, setStopPrice] = useState('');
 
   const MOCK_BALANCES = useMemo(() => ({
     'BTC': 1.5, 'ETH': 30, 'SOL': 500, 'DOGE': 1000000, 'XRP': 50000, 'USDT': 100000,
@@ -29,10 +31,31 @@ const OrderForm: React.FC<OrderFormProps> = ({ market, price, setPrice }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (type !== 'market') {
+      // Add to open orders for limit/stop orders
+      const orderPrice = parseFloat(price) || 0;
+      const orderAmount = parseFloat(amount) || 0;
+      const orderStopPrice = parseFloat(stopPrice) || undefined;
+      
+      if (orderPrice > 0 && orderAmount > 0) {
+        addOrder({
+          market: market.id,
+          side,
+          type: type as 'limit' | 'stop' | 'stop-limit',
+          price: orderPrice,
+          stopPrice: (type === 'stop' || type === 'stop-limit') ? orderStopPrice : undefined,
+          amount: orderAmount,
+          total: orderPrice * orderAmount,
+        });
+      }
+    }
+    
     console.log({
-      side, type, price, amount, market: market.id,
+      side, type, price, amount, stopPrice, market: market.id,
     });
     setAmount('');
+    setStopPrice('');
   };
 
   const handlePercentClick = (percent: number) => {
@@ -85,7 +108,12 @@ const OrderForm: React.FC<OrderFormProps> = ({ market, price, setPrice }) => {
       />
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         <Tabs
-          tabs={[{ id: 'limit', label: 'Limit' }, { id: 'market', label: 'Market' }]}
+          tabs={[
+            { id: 'limit', label: 'Limit' }, 
+            { id: 'market', label: 'Market' },
+            { id: 'stop', label: 'Stop' },
+            { id: 'stop-limit', label: 'Stop-Limit' },
+          ]}
           activeTab={type}
           onTabClick={(tab) => setType(tab as OrderType)}
           size="sm"
@@ -96,13 +124,22 @@ const OrderForm: React.FC<OrderFormProps> = ({ market, price, setPrice }) => {
             <span className="font-mono">{side === 'buy' ? `${quoteBalance.toFixed(2)} ${market.quote}` : `${baseBalance.toFixed(4)} ${market.base}`}</span>
         </div>
 
+        {(type === 'stop' || type === 'stop-limit') && (
+          <InputGroup
+            label="Stop Price"
+            value={stopPrice}
+            onChange={(e) => setStopPrice(e.target.value)}
+            placeholder="Trigger when price reaches..."
+            unit={market.quote}
+          />
+        )}
         <InputGroup
-          label="Price"
+          label={type === 'stop' ? 'Execution Price' : 'Price'}
           value={type === 'market' ? 'Market' : price}
           onChange={(e) => setPrice(e.target.value)}
           placeholder="0.00"
           unit={market.quote}
-          disabled={type === 'market'}
+          disabled={type === 'market' || type === 'stop'}
         />
         <InputGroup
           label="Amount"
