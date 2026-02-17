@@ -1,10 +1,12 @@
-
 import React, { useState } from 'react';
+import { useAccount, useBalance, useChainId } from 'wagmi';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import { Tabs } from '../ui/Tabs';
 import { simulateSendEmail } from '../../emails/templates';
+import WalletConnect from './WalletConnect';
+import { CHAIN_NAMES } from '../../config/web3';
 import type { BankAccount, AppConfig, User, Transaction } from '../../types';
 
 const MOCK_ASSETS = [
@@ -29,6 +31,19 @@ const WalletView: React.FC<WalletViewProps> = ({ isKycVerified, onRequireKyc, ap
     const [isWithdrawOpen, setWithdrawOpen] = useState(false);
     const [isAddBankOpen, setAddBankOpen] = useState(false);
     const [linkedAccounts] = useState<BankAccount[]>([]);
+    
+    // Web3 hooks
+    const { address, isConnected } = useAccount();
+    const chainId = useChainId();
+    const { data: nativeBalance } = useBalance({ address });
+    
+    const formatBalance = (value: bigint, decimals: number, precision: number = 4) => {
+        const divisor = BigInt(10 ** decimals);
+        const intPart = value / divisor;
+        const fracPart = value % divisor;
+        const fracStr = fracPart.toString().padStart(decimals, '0').slice(0, precision);
+        return `${intPart}.${fracStr}`;
+    };
     
     const DepositContent = () => {
         const [type, setType] = useState<DepositType>('card');
@@ -263,29 +278,55 @@ const WalletView: React.FC<WalletViewProps> = ({ isKycVerified, onRequireKyc, ap
 
     return (
         <>
-            <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-sky-50">
+            <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-gray-900">
                 <div className="max-w-6xl mx-auto">
                     <div className="flex items-center justify-between mb-6">
-                        <h1 className="text-3xl font-bold text-slate-900">Wallet</h1>
+                        <h1 className="text-3xl font-bold text-white">Wallet</h1>
                         <div className="flex space-x-2">
                             <Button variant="buy" onClick={() => setDepositOpen(true)}>Deposit</Button>
                             <Button variant="sell" onClick={() => setWithdrawOpen(true)}>Withdraw</Button>
                         </div>
                     </div>
-                    {/* Rest of Wallet UI */}
-                     <Card className="mb-6 bg-gradient-to-br from-sky-500 to-sky-700 text-white">
+                    
+                    {/* Web3 Wallet Connection */}
+                    <div className="mb-6">
+                        <WalletConnect />
+                    </div>
+                    
+                    {/* Balance Card */}
+                    <Card className="mb-6 bg-gradient-to-br from-blue-600 to-purple-700 text-white border-0">
                         <div className="flex justify-between items-center">
                             <div>
-                                <p className="text-sky-100 text-sm">Total Balance</p>
-                                <p className="text-4xl font-bold">$377,500.00</p>
+                                <p className="text-blue-100 text-sm">
+                                    {isConnected ? `${CHAIN_NAMES[chainId] || 'Network'} Balance` : 'Demo Balance'}
+                                </p>
+                                <p className="text-4xl font-bold">
+                                    {isConnected && nativeBalance 
+                                        ? `${formatBalance(nativeBalance.value, nativeBalance.decimals)} ${nativeBalance.symbol}`
+                                        : '$377,500.00'
+                                    }
+                                </p>
+                                {isConnected && (
+                                    <p className="text-blue-200 text-sm mt-1">
+                                        Connected to Web3 Wallet
+                                    </p>
+                                )}
                             </div>
+                            {isConnected && (
+                                <div className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm font-medium">
+                                    ● Live
+                                </div>
+                            )}
                         </div>
                     </Card>
-                     <h2 className="text-xl font-bold text-slate-900 mb-4">Assets</h2>
-                    <Card padding="p-0">
-                         <div className="overflow-x-auto">
+                    
+                    <h2 className="text-xl font-bold text-white mb-4">
+                        {isConnected ? 'On-Chain Assets' : 'Demo Assets'}
+                    </h2>
+                    <Card padding="p-0" className="bg-gray-800 border-gray-700">
+                        <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-slate-500 uppercase bg-slate-50">
+                                <thead className="text-xs text-gray-400 uppercase bg-gray-800/50">
                                     <tr>
                                         <th className="px-6 py-3">Asset</th>
                                         <th className="px-6 py-3 text-right">Balance</th>
@@ -293,17 +334,37 @@ const WalletView: React.FC<WalletViewProps> = ({ isKycVerified, onRequireKyc, ap
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {MOCK_ASSETS.map(asset => (
-                                        <tr key={asset.symbol} className="border-b border-slate-200 last:border-b-0 hover:bg-slate-50/70">
-                                            <td className="px-6 py-4 font-medium text-slate-800">{asset.name} <span className="text-slate-500">{asset.symbol}</span></td>
-                                            <td className="px-6 py-4 text-right font-mono text-slate-600">{asset.balance}</td>
-                                            <td className="px-6 py-4 text-right font-mono text-slate-600">${asset.value}</td>
+                                    {isConnected && nativeBalance ? (
+                                        <tr className="border-b border-gray-700 hover:bg-gray-700/50">
+                                            <td className="px-6 py-4 font-medium text-white">
+                                                {nativeBalance.symbol} <span className="text-gray-400">Native</span>
+                                            </td>
+                                            <td className="px-6 py-4 text-right font-mono text-gray-300">
+                                                {formatBalance(nativeBalance.value, nativeBalance.decimals, 6)}
+                                            </td>
+                                            <td className="px-6 py-4 text-right font-mono text-gray-300">-</td>
                                         </tr>
-                                    ))}
+                                    ) : (
+                                        MOCK_ASSETS.map(asset => (
+                                            <tr key={asset.symbol} className="border-b border-gray-700 last:border-b-0 hover:bg-gray-700/50">
+                                                <td className="px-6 py-4 font-medium text-white">
+                                                    {asset.name} <span className="text-gray-400">{asset.symbol}</span>
+                                                </td>
+                                                <td className="px-6 py-4 text-right font-mono text-gray-300">{asset.balance}</td>
+                                                <td className="px-6 py-4 text-right font-mono text-gray-300">${asset.value}</td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>
                     </Card>
+                    
+                    {!isConnected && (
+                        <p className="text-center text-gray-500 text-sm mt-4">
+                            Connect your wallet above to see your real crypto balances
+                        </p>
+                    )}
                 </div>
             </main>
             <Modal isOpen={isDepositOpen} onClose={() => setDepositOpen(false)} title="Deposit Funds">
