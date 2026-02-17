@@ -11,7 +11,9 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@capacitor/android": "^8.1.0",
     "@capacitor/core": "^8.1.0",
+    "@capacitor/ios": "^8.1.0",
     "@google/genai": "^1.41.0",
     "@supabase/supabase-js": "^2.95.3",
     "@types/qrcode": "^1.5.6",

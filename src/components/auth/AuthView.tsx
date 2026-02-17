@@ -88,8 +88,12 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
     setMessage('');
     setIsLoading(true);
 
+    const redirectUrl = import.meta.env.PROD 
+      ? 'https://14digitalxchange.com' 
+      : window.location.origin;
+    
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${redirectUrl}/reset-password`,
     });
 
     if (error) {

@@ -9,11 +9,19 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Production site URL
+const SITE_URL = import.meta.env.PROD 
+  ? 'https://14digitalxchange.com' 
+  : window.location.origin;
+
 // Auth helper functions
 export const signUp = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      emailRedirectTo: `${SITE_URL}/`,
+    },
   });
   return { data, error };
 };
