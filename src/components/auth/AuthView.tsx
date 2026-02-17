@@ -13,7 +13,7 @@ interface AuthViewProps {
 }
 
 const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
-  const [view, setView] = useState<'login' | 'signup' | 'forgot_password' | 'check_email'>('login');
+  const [view, setView] = useState<'login' | 'signup' | 'forgot_password' | 'check_email' | 'reset_password'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -21,6 +21,19 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+
+  // Check for password reset token in URL
+  React.useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const type = hashParams.get('type');
+    
+    if (accessToken && type === 'recovery') {
+      setView('reset_password');
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,7 +106,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
       : window.location.origin;
     
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${redirectUrl}/reset-password`,
+      redirectTo: redirectUrl,
     });
 
     if (error) {
@@ -237,6 +250,75 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
     </>
   );
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+
+    if (newPassword !== confirmNewPassword) {
+      setError("Passwords don't match.");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) {
+      setError(error.message);
+    } else {
+      setMessage('Password updated successfully!');
+      // Clear the URL hash
+      window.history.replaceState(null, '', window.location.pathname);
+      setTimeout(() => {
+        setView('login');
+        setMessage('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+      }, 2000);
+    }
+    setIsLoading(false);
+  };
+
+  const renderResetPassword = () => (
+    <>
+      <h2 className="text-2xl font-bold text-center text-slate-900">Set New Password</h2>
+      <p className="text-center text-slate-500 mb-8">Enter your new password below.</p>
+      <form onSubmit={handleResetPassword} className="space-y-4">
+        <PasswordInput 
+          id="new-password" 
+          label="New Password" 
+          value={newPassword} 
+          onChange={(e) => setNewPassword(e.target.value)} 
+          show={showPassword} 
+          onToggleVisibility={() => setShowPassword(!showPassword)} 
+          required 
+          disabled={isLoading}
+        />
+        <PasswordInput 
+          id="confirm-new-password" 
+          label="Confirm New Password" 
+          value={confirmNewPassword} 
+          onChange={(e) => setConfirmNewPassword(e.target.value)} 
+          show={showPassword} 
+          onToggleVisibility={() => setShowPassword(!showPassword)} 
+          required 
+          disabled={isLoading}
+        />
+        {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+        {message && <p className="text-green-600 text-sm text-center">{message}</p>}
+        <Button type="submit" variant="primary" className="w-full !mt-6" disabled={isLoading}>
+          {isLoading ? 'Updating...' : 'Update Password'}
+        </Button>
+      </form>
+    </>
+  );
+
   return (
     <div className="min-h-screen bg-sky-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -249,6 +331,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
           {view === 'signup' && renderSignup()}
           {view === 'check_email' && renderCheckEmail()}
           {view === 'forgot_password' && renderForgotPassword()}
+          {view === 'reset_password' && renderResetPassword()}
         </div>
       </div>
     </div>
