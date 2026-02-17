@@ -131,7 +131,117 @@ const WalletView: React.FC<WalletViewProps> = ({ isKycVerified, onRequireKyc, ap
         )
     };
     
-    const WithdrawContent = () => { /* ... similar logic would be applied here ... */ return <div>Withdrawal UI</div> };
+    const WithdrawContent = () => {
+        type WithdrawType = 'crypto' | 'fiat';
+        const [type, setType] = useState<WithdrawType>('crypto');
+        const [amount, setAmount] = useState('');
+        const [address, setAddress] = useState('');
+        const [selectedAsset, setSelectedAsset] = useState('BTC');
+        const [selectedBank, setSelectedBank] = useState<string>(linkedAccounts[0]?.id || '');
+        const [status, setStatus] = useState<{ type: 'success' | 'error' | 'pending'; message: string } | null>(null);
+        const [isProcessing, setIsProcessing] = useState(false);
+
+        const handleSubmit = async (e: React.FormEvent) => {
+            e.preventDefault();
+            setIsProcessing(true);
+            setStatus(null);
+            
+            const withdrawAmount = parseFloat(amount);
+            if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
+                setStatus({ type: 'error', message: 'Please enter a valid amount.' });
+                setIsProcessing(false);
+                return;
+            }
+
+            if (type === 'crypto' && !address.trim()) {
+                setStatus({ type: 'error', message: 'Please enter a wallet address.' });
+                setIsProcessing(false);
+                return;
+            }
+
+            if (type === 'fiat' && !selectedBank) {
+                setStatus({ type: 'error', message: 'Please select a bank account.' });
+                setIsProcessing(false);
+                return;
+            }
+
+            // KYC Check
+            if (!isKycVerified && withdrawAmount > appConfig.kycThreshold) {
+                simulateSendEmail('kycRequired', { threshold: appConfig.kycThreshold });
+                onRequireKyc();
+                setWithdrawOpen(false);
+                return;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            const asset = type === 'crypto' ? selectedAsset : 'USD';
+
+            // Smart Approval Check
+            if (withdrawAmount > appConfig.manualApprovalThreshold) {
+                onAddTransaction({
+                    userId: user.userId,
+                    type: 'Withdrawal',
+                    amount: withdrawAmount,
+                    asset: asset,
+                });
+                simulateSendEmail('transactionPending', { amount: withdrawAmount, asset: asset, type: 'Withdrawal' });
+                setStatus({ type: 'pending', message: `Your withdrawal of ${withdrawAmount} ${asset} is pending approval.` });
+            } else {
+                // Auto-approve
+                if (Math.random() > 0.1) {
+                    const txId = crypto.randomUUID();
+                    setStatus({ type: 'success', message: `Successfully withdrew ${amount} ${asset}.` });
+                    simulateSendEmail('withdrawalSuccess', { amount: withdrawAmount, asset: asset, address: address || 'Bank Account', txId });
+                } else {
+                    setStatus({ type: 'error', message: 'Withdrawal failed. Please try again.' });
+                    simulateSendEmail('withdrawalFailed', { amount: withdrawAmount, asset: asset, reason: 'Insufficient funds or network error' });
+                }
+            }
+            setIsProcessing(false);
+        };
+
+        return (
+            <div className="space-y-4">
+                <Tabs tabs={[{id: 'crypto', label: 'Crypto'}, {id: 'fiat', label: 'Bank Transfer'}]} activeTab={type} onTabClick={(t) => setType(t as WithdrawType)} />
+                {type === 'crypto' && (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <Select label="Asset" value={selectedAsset} onChange={e => setSelectedAsset(e.target.value)}>
+                            {MOCK_ASSETS.map(asset => <option key={asset.symbol} value={asset.symbol}>{asset.name} ({asset.symbol}) - {asset.balance}</option>)}
+                        </Select>
+                        <Input label="Wallet Address" placeholder="Enter destination wallet address" value={address} onChange={(e) => setAddress(e.target.value)} disabled={isProcessing} />
+                        <Input label="Amount" placeholder="0.00" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} disabled={isProcessing} />
+                        <Button variant="primary" className="w-full" type="submit" disabled={isProcessing}>
+                            {isProcessing ? 'Processing...' : 'Withdraw'}
+                        </Button>
+                    </form>
+                )}
+                {type === 'fiat' && (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        {linkedAccounts.length > 0 ? (
+                            <>
+                                <Select label="To Account" value={selectedBank} onChange={e => setSelectedBank(e.target.value)}>
+                                    {linkedAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.bankName} - *{acc.accountNumberLast4}</option>)}
+                                </Select>
+                                <Input label="Amount (USD)" placeholder="100.00" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} disabled={isProcessing} />
+                                <Button variant="primary" className="w-full" type="submit" disabled={isProcessing}>
+                                    {isProcessing ? 'Processing...' : 'Withdraw to Bank'}
+                                </Button>
+                            </>
+                        ) : (
+                            <div className="text-center bg-slate-100 p-4 rounded-lg">
+                                <p className="text-sm text-slate-600 mb-3">You have no bank accounts linked.</p>
+                                <Button onClick={() => { setWithdrawOpen(false); setAddBankOpen(true); }}>Add a Bank Account</Button>
+                            </div>
+                        )}
+                    </form>
+                )}
+                {status && (
+                    <p className={`text-sm text-center mt-4 ${status.type === 'success' ? 'text-green-600' : status.type === 'error' ? 'text-red-600' : 'text-yellow-600'}`}>{status.message}</p>
+                )}
+            </div>
+        )
+    };
     
     const AddBankContent = () => { /* ... content ... */ return <div>Add bank UI</div> };
 

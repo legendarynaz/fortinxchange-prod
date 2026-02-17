@@ -82,7 +82,46 @@ export const emailTemplates: Record<string, EmailTemplate> = {
 };
 
 /**
- * Simulates sending an email by logging it to the console.
+ * Sends a real email via the Resend API.
+ * @param templateName The key of the template.
+ * @param params The parameters to inject into the template.
+ * @param toEmail The recipient email address.
+ */
+export const sendEmail = async (
+  templateName: string,
+  params: Record<string, string | number>,
+  toEmail: string
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const response = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        to: toEmail,
+        template: templateName,
+        params,
+      }),
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      console.error('Email send failed:', data.error);
+      return { success: false, error: data.error };
+    }
+
+    console.log('Email sent successfully:', data.id);
+    return { success: true };
+  } catch (error) {
+    console.error('Email send error:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+};
+
+/**
+ * Fallback function that logs to console (for development/testing).
  * @param templateName The key of the template in emailTemplates.
  * @param params The parameters to inject into the template.
  */
@@ -94,11 +133,9 @@ export const simulateSendEmail = (templateName: keyof typeof emailTemplates, par
     }
 
     console.log(`
---- SIMULATING EMAIL ---
-To: user@email.com
-Subject: ${template.subject}
---------------------------
-${template.body(params)}
---- END OF EMAIL ---
+--- EMAIL (console only) ---
+Template: ${templateName}
+Params: ${JSON.stringify(params)}
+--- END ---
     `);
 };
