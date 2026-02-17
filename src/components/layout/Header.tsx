@@ -14,9 +14,9 @@ import CurrencySelector from '../ui/CurrencySelector';
 interface HeaderProps {
   selectedMarket: Market;
   onMarketChange: (market: Market) => void;
-  onNavigate: (view: 'trade' | 'wallet' | 'history' | 'settings' | 'referral') => void;
+  onNavigate: (view: 'trade' | 'wallet' | 'history' | 'settings' | 'referral' | 'portfolio') => void;
   onLogout: () => void;
-  currentView: 'trade' | 'wallet' | 'history' | 'settings' | 'referral';
+  currentView: 'trade' | 'wallet' | 'history' | 'settings' | 'referral' | 'portfolio';
   isKycVerified: boolean;
 }
 
@@ -98,6 +98,7 @@ const Header: React.FC<HeaderProps> = ({ selectedMarket, onMarketChange, onNavig
 
       <div className="flex items-center space-x-6">
         <NavButton onClick={() => onNavigate('trade')} isActive={currentView === 'trade'}>Trade</NavButton>
+        <NavButton onClick={() => onNavigate('portfolio')} isActive={currentView === 'portfolio'}>Portfolio</NavButton>
         <NavButton onClick={() => onNavigate('wallet')} isActive={currentView === 'wallet'}>Wallet</NavButton>
         <NavButton onClick={() => onNavigate('history')} isActive={currentView === 'history'}>History</NavButton>
         <NavButton onClick={() => onNavigate('referral')} isActive={currentView === 'referral'}>Referral</NavButton>

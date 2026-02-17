@@ -6,6 +6,7 @@ import WalletView from './components/wallet/WalletView';
 import TransactionHistory from './components/history/TransactionHistory';
 import SettingsView from './components/settings/SettingsView';
 import ReferralSystem from './components/referral/ReferralSystem';
+import PortfolioDashboard from './components/portfolio/PortfolioDashboard';
 import AuthView from './components/auth/AuthView';
 import Chatbot from './components/chatbot/Chatbot';
 import KYCView from './components/kyc/KYCView';
@@ -17,7 +18,7 @@ import { MARKETS } from './constants';
 import ChatBubbleIcon from './components/icons/ChatBubbleIcon';
 import { getAppConfig, getTransactions, saveTransactions } from './services/configService';
 
-type View = 'trade' | 'wallet' | 'history' | 'settings' | 'referral';
+type View = 'trade' | 'wallet' | 'history' | 'settings' | 'referral' | 'portfolio';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -121,6 +122,14 @@ const App: React.FC = () => {
         isKycVerified={isKycVerified}
       />
       {currentView === 'trade' && <TradingView market={selectedMarket} appConfig={appConfig} />}
+      {currentView === 'portfolio' && (
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+          <div className="max-w-6xl mx-auto">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">Portfolio Dashboard</h1>
+            <PortfolioDashboard />
+          </div>
+        </main>
+      )}
       {currentView === 'wallet' && (
         <WalletView 
             isKycVerified={isKycVerified} 

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import type { ChartDataPoint, Market } from '../../types';
 import Card from '../ui/Card';
+import { wsService } from '../../services/websocketService';
 
 const generateInitialData = (length: number, initialPrice: number): ChartDataPoint[] => {
   const data: ChartDataPoint[] = [];
@@ -44,7 +45,25 @@ interface TradingChartProps {
 
 const TradingChart: React.FC<TradingChartProps> = ({ market, initialPrice, onPriceChange }) => {
   const [data, setData] = useState<ChartDataPoint[]>([]);
+  const [isLive, setIsLive] = useState(false);
+  const [change24h, setChange24h] = useState(0);
 
+  // Handle WebSocket price updates
+  const handlePriceUpdate = useCallback((symbol: string, price: number, change: number) => {
+    if (symbol === market.base) {
+      setIsLive(true);
+      setChange24h(change);
+      setData(currentData => {
+        if (currentData.length === 0) return [];
+        const newTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const newData = [...currentData.slice(1), { time: newTime, price: parseFloat(price.toFixed(2)) }];
+        onPriceChange(price);
+        return newData;
+      });
+    }
+  }, [market.base, onPriceChange]);
+
+  // Initialize chart data
   useEffect(() => {
     if (initialPrice > 0) {
         const initialData = generateInitialData(50, initialPrice);
@@ -53,10 +72,17 @@ const TradingChart: React.FC<TradingChartProps> = ({ market, initialPrice, onPri
             onPriceChange(initialData[initialData.length - 1].price);
         }
     }
-  }, [initialPrice, market.id]); // Rerun when initialPrice is fetched
-  
+  }, [initialPrice, market.id]);
+
+  // Subscribe to WebSocket updates
   useEffect(() => {
-    if (data.length === 0) return;
+    const unsubscribe = wsService.subscribe(market.base, handlePriceUpdate);
+    return () => unsubscribe();
+  }, [market.base, handlePriceUpdate]);
+  
+  // Fallback simulation when WebSocket not connected
+  useEffect(() => {
+    if (data.length === 0 || isLive) return;
 
     const interval = setInterval(() => {
       setData(currentData => {
@@ -71,7 +97,7 @@ const TradingChart: React.FC<TradingChartProps> = ({ market, initialPrice, onPri
       });
     }, 2000);
     return () => clearInterval(interval);
-  }, [data, onPriceChange]);
+  }, [data.length, isLive, onPriceChange]);
 
   if (data.length === 0) {
     return (
@@ -90,14 +116,31 @@ const TradingChart: React.FC<TradingChartProps> = ({ market, initialPrice, onPri
 
   return (
     <Card className="h-full flex flex-col" padding="p-0">
-      <div className="p-4 border-b border-slate-200">
-          <div className="flex items-baseline space-x-4">
-              <h2 className="text-xl font-bold text-slate-900">{market.name}</h2>
-              <div className="flex items-baseline">
-                <span className={`text-xl font-bold ${isUp ? 'text-green-600' : 'text-red-600'}`}>
-                  {lastPrice > 0 ? lastPrice.toFixed(2) : '-'}
+      <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between">
+              <div className="flex items-baseline space-x-4">
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">{market.name}</h2>
+                  <div className="flex items-baseline">
+                    <span className={`text-xl font-bold ${isUp ? 'text-green-600' : 'text-red-600'}`}>
+                      {lastPrice > 0 ? lastPrice.toFixed(2) : '-'}
+                    </span>
+                    <span className="text-sm text-slate-500 dark:text-slate-400 ml-2">{market.quote}</span>
+                  </div>
+                  {change24h !== 0 && (
+                    <span className={`text-sm px-2 py-0.5 rounded ${
+                      change24h >= 0 
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                    }`}>
+                      24h: {change24h >= 0 ? '+' : ''}{change24h.toFixed(2)}%
+                    </span>
+                  )}
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className={`w-2 h-2 rounded-full ${isLive ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`} />
+                <span className="text-slate-500 dark:text-slate-400">
+                  {isLive ? 'Live' : 'Simulated'}
                 </span>
-                <span className="text-sm text-slate-500 ml-2">{market.quote}</span>
               </div>
           </div>
       </div>
