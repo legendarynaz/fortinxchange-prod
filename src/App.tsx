@@ -108,7 +108,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen antialiased bg-sky-50">
+    <div className="flex flex-col h-screen antialiased bg-sky-50 dark:bg-slate-950">
       <Header 
         selectedMarket={selectedMarket} 
         onMarketChange={setSelectedMarket}
@@ -132,7 +132,7 @@ const App: React.FC = () => {
           {!isChatOpen && (
              <button
               onClick={handleToggleChat}
-              className="bg-sky-600 hover:bg-sky-700 text-white rounded-full p-4 shadow-lg transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+              className="bg-sky-600 hover:bg-sky-700 text-white rounded-full p-4 shadow-lg transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 dark:ring-offset-slate-900"
               aria-label={"Open Chat"}
             >
               <ChatBubbleIcon className="w-6 h-6" />
