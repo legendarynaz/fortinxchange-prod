@@ -24,7 +24,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
-  // Check for password reset token in URL
+  // Check for auth tokens in URL (password reset, email verification)
   React.useEffect(() => {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const accessToken = hashParams.get('access_token');
@@ -32,6 +32,12 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
     
     if (accessToken && type === 'recovery') {
       setView('reset_password');
+    } else if (accessToken && (type === 'signup' || type === 'email_change')) {
+      // Email verified - show success and redirect to login
+      setMessage('Email verified successfully! You can now log in.');
+      setView('login');
+      // Clear the URL hash
+      window.history.replaceState(null, '', window.location.pathname);
     }
   }, []);
 
