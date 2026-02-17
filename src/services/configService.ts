@@ -1,5 +1,5 @@
 
-import { AppConfig, Transaction } from '../types';
+import type { AppConfig, Transaction } from '../types';
 import { DEFAULT_CONFIG } from '../config';
 
 const CONFIG_KEY = 'fortinXchange_appConfig';

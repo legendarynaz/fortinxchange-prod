@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trade, Market } from '../../types';
+import type { Trade, Market } from '../../types';
 import Card from '../ui/Card';
 
 const generateRandomTrade = (basePrice: number): Trade => ({

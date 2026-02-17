@@ -5,9 +5,7 @@ import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import { Tabs } from '../ui/Tabs';
 import { simulateSendEmail } from '../../emails/templates';
-import { BankAccount, AppConfig, User, Transaction } from '../../types';
-import { MOCK_BANK_NAMES } from '../../constants';
-import BanknotesIcon from '../icons/BanknotesIcon';
+import type { BankAccount, AppConfig, User, Transaction } from '../../types';
 
 const MOCK_ASSETS = [
     { name: 'Bitcoin', symbol: 'BTC', balance: '1.50000000', value: '97,500.00' },
@@ -17,7 +15,6 @@ const MOCK_ASSETS = [
 ];
 
 type DepositType = 'card' | 'bank';
-type WithdrawType = 'crypto' | 'fiat';
 
 interface WalletViewProps {
     isKycVerified: boolean;
@@ -31,7 +28,7 @@ const WalletView: React.FC<WalletViewProps> = ({ isKycVerified, onRequireKyc, ap
     const [isDepositOpen, setDepositOpen] = useState(false);
     const [isWithdrawOpen, setWithdrawOpen] = useState(false);
     const [isAddBankOpen, setAddBankOpen] = useState(false);
-    const [linkedAccounts, setLinkedAccounts] = useState<BankAccount[]>([]);
+    const [linkedAccounts] = useState<BankAccount[]>([]);
     
     const DepositContent = () => {
         const [type, setType] = useState<DepositType>('card');

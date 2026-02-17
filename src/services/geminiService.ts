@@ -1,5 +1,5 @@
-import { GoogleGenAI, GenerateContentResponse, Chat } from "@google/genai";
-import { GroundingSource } from "../types";
+import { GoogleGenAI, type GenerateContentResponse, type Chat } from "@google/genai";
+import type { GroundingSource } from "../types";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -52,7 +52,7 @@ export const fetchMarketAnalysis = async (
       (chunk): chunk is GroundingSource => !!chunk.web
     ) ?? [];
     
-    return { analysis, sources };
+    return { analysis: analysis ?? '', sources };
   } catch (error) {
     console.error("Error fetching market analysis from Gemini:", error);
     return {
@@ -76,7 +76,7 @@ export const fetchLivePrice = async (base: string, quote: string): Promise<numbe
         },
     });
     
-    const priceText = response.text.trim().replace(/,/g, '');
+    const priceText = (response.text ?? '').trim().replace(/,/g, '');
     const price = parseFloat(priceText);
 
     if (!isNaN(price) && price > 0) {
@@ -104,7 +104,7 @@ export const sendChatMessage = async (message: string): Promise<string> => {
 
     try {
         const response: GenerateContentResponse = await supportChat.sendMessage({ message });
-        return response.text;
+        return response.text ?? '';
     } catch (error) {
         console.error("Error sending chat message:", error);
         return "Sorry, I'm having trouble connecting. Please try again in a moment.";

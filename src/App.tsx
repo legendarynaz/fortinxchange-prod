@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/layout/Header';
 import TradingView from './components/dashboard/TradingView';
 import WalletView from './components/wallet/WalletView';
@@ -9,7 +9,7 @@ import KYCView from './components/kyc/KYCView';
 import AdminView from './components/admin/AdminView';
 import MaintenanceView from './components/views/MaintenanceView';
 import RegionLockView from './components/views/RegionLockView';
-import { Market, AppConfig, Transaction, User } from './types';
+import type { Market, AppConfig, Transaction, User } from './types';
 import { MARKETS } from './constants';
 import ChatBubbleIcon from './components/icons/ChatBubbleIcon';
 import { getAppConfig, getTransactions, saveTransactions } from './services/configService';
@@ -79,11 +79,6 @@ const App: React.FC = () => {
     saveTransactions(updatedTransactions);
   };
   
-  const handleUpdateTransaction = (txId: string, status: 'approved' | 'declined') => {
-      const updatedTransactions = transactions.map(tx => tx.id === txId ? {...tx, status} : tx);
-      setTransactions(updatedTransactions);
-      saveTransactions(updatedTransactions);
-  };
 
   const handleNavigate = (view: View) => setCurrentView(view);
   const handleToggleChat = () => setIsChatOpen(prev => !prev);

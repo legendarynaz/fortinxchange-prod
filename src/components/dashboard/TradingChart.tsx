@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { ChartDataPoint, Market } from '../../types';
+import type { ChartDataPoint, Market } from '../../types';
 import Card from '../ui/Card';
 
 const generateInitialData = (length: number, initialPrice: number): ChartDataPoint[] => {

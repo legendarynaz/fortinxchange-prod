@@ -1,5 +1,5 @@
 
-import { LoginAttemptInfo } from '../types';
+import type { LoginAttemptInfo } from '../types';
 
 const ATTEMPTS_KEY_PREFIX = 'fortinXchange_loginAttempts_';
 const MAX_ATTEMPTS = 4;

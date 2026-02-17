@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Market } from '../../types';
+import type { Market } from '../../types';
 import { MARKETS } from '../../constants';
 import LogoIcon from '../icons/LogoIcon';
 import ChevronDownIcon from '../icons/ChevronDownIcon';

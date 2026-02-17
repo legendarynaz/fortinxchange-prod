@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Market, GroundingSource } from '../../types';
+import type { Market, GroundingSource } from '../../types';
 import { fetchMarketAnalysis } from '../../services/geminiService';
 import Card from '../ui/Card';
 import SparklesIcon from '../icons/SparklesIcon';

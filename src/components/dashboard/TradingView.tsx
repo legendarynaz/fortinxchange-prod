@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Market, AppConfig } from '../../types';
+import type { Market, AppConfig } from '../../types';
 import TradingChart from './TradingChart';
 import OrderBook from './OrderBook';
 import OrderForm from './OrderForm';

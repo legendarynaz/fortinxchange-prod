@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Order } from '../../types';
+import type { Order } from '../../types';
 import Card from '../ui/Card';
 
 const generateOrderBookData = (count: number, centerPrice: number, isBid: boolean): Order[] => {

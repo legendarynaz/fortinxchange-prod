@@ -9,7 +9,7 @@ import ClipboardIcon from '../icons/ClipboardIcon';
 import EnvelopeIcon from '../icons/EnvelopeIcon';
 import UserIcon from '../icons/UserIcon';
 import LockClosedIcon from '../icons/LockClosedIcon';
-import { User } from '../../types';
+import type { User } from '../../types';
 import * as securityService from '../../services/securityService';
 import { simulateSendEmail } from '../../emails/templates';
 

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Market } from '../../types';
+import type { Market } from '../../types';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { Tabs } from '../ui/Tabs';

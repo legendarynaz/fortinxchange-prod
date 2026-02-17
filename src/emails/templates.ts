@@ -55,11 +55,11 @@ export const emailTemplates: Record<string, EmailTemplate> = {
   },
   kycSubmitted: {
     subject: 'Your Documents Have Been Received',
-    body: params => `Hello,\n\nWe have received your identity verification documents. Our team will review them, and we will notify you of the result, usually within 24 hours.\n\nYou can check your verification status in your account profile.\n\nThanks,\nThe FortinXchange Team`
+    body: _params => `Hello,\n\nWe have received your identity verification documents. Our team will review them, and we will notify you of the result, usually within 24 hours.\n\nYou can check your verification status in your account profile.\n\nThanks,\nThe FortinXchange Team`
   },
   kycApproved: {
     subject: 'Verification Successful!',
-    body: params => `Hello,\n\nCongratulations! Your identity has been successfully verified. You now have full access to all features and limits on FortinXchange.\n\nHappy trading,\nThe FortinXchange Team`
+    body: _params => `Hello,\n\nCongratulations! Your identity has been successfully verified. You now have full access to all features and limits on FortinXchange.\n\nHappy trading,\nThe FortinXchange Team`
   },
   kycRejected: {
     subject: 'Identity Verification Failed',
@@ -67,7 +67,7 @@ export const emailTemplates: Record<string, EmailTemplate> = {
   },
   regionNotSupported: {
     subject: 'Service Notice for Your Region',
-    body: params => `Hello,\n\nThank you for your interest in FortinXchange. Unfortunately, our services are not currently available in your region.\n\nWe are working to expand our services and hope to support your region in the future.\n\nThanks,\nThe FortinXchange Team`
+    body: _params => `Hello,\n\nThank you for your interest in FortinXchange. Unfortunately, our services are not currently available in your region.\n\nWe are working to expand our services and hope to support your region in the future.\n\nThanks,\nThe FortinXchange Team`
   },
 
   // --- Bank Accounts ---

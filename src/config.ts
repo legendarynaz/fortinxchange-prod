@@ -1,5 +1,5 @@
 
-import { AppConfig } from './types';
+import type { AppConfig } from './types';
 
 // This file now exports the default configuration for the application.
 // Live settings are managed by the `configService` and stored in localStorage.

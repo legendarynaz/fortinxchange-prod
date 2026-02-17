@@ -4,10 +4,9 @@ import LogoIcon from '../icons/LogoIcon';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import { getAppConfig, saveAppConfig, getTransactions, saveTransactions, resetAppConfig } from '../../services/configService';
-import { AppConfig, Transaction } from '../../types';
+import type { AppConfig, Transaction } from '../../types';
 import { MARKETS } from '../../constants';
 import CogIcon from '../icons/CogIcon';
-import ClockIcon from '../icons/ClockIcon';
 import CheckCircleIcon from '../icons/CheckCircleIcon';
 import XCircleIcon from '../icons/XCircleIcon';
 
@@ -56,7 +55,7 @@ const AdminView: React.FC<{ onConfigChange: () => void }> = ({ onConfigChange })
       }
   }
 
-  const handleTransaction = (txId: string, status: 'approved' | 'declined') => {
+  const handleTransaction = (txId: string, _status: 'approved' | 'declined') => {
       const updatedTransactions = transactions.filter(tx => tx.id !== txId);
       // In a real app, you'd update the status, but here we just remove it from the queue.
       setTransactions(updatedTransactions);

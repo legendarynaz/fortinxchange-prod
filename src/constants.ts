@@ -1,5 +1,5 @@
 
-import { Market } from './types';
+import type { Market } from './types';
 
 export const MARKETS: Market[] = [
   { id: 'BTC-USDT', base: 'BTC', quote: 'USDT', name: 'BTC/USDT' },
