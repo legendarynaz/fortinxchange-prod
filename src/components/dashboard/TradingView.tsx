@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
+import { useAccount } from 'wagmi';
 import type { Market, AppConfig } from '../../types';
 import TradingChart from './TradingChart';
 import OrderBook from './OrderBook';
@@ -8,6 +8,7 @@ import TradeHistory from './TradeHistory';
 import MarketInfo from './MarketInfo';
 import PriceAlerts from '../alerts/PriceAlerts';
 import OpenOrders from '../orders/OpenOrders';
+import Web3Swap from '../trading/Web3Swap';
 import { fetchLivePrice } from '../../services/geminiService';
 
 const FALLBACK_PRICES: Record<string, number> = {
@@ -24,6 +25,7 @@ interface TradingViewProps {
 }
 
 const TradingView: React.FC<TradingViewProps> = ({ market, appConfig }) => {
+  const { isConnected } = useAccount();
   const [initialPrice, setInitialPrice] = useState<number>(0);
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [orderPrice, setOrderPrice] = useState<string>('');
@@ -69,12 +71,20 @@ const TradingView: React.FC<TradingViewProps> = ({ market, appConfig }) => {
 
   return (
     <main className="flex-1 p-2 sm:p-4 grid grid-cols-1 xl:grid-cols-[300px_1fr_340px] gap-4 h-full overflow-hidden">
-      {/* Demo Mode Banner */}
-      <div className="col-span-full bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2 mb-2">
-        <p className="text-center text-yellow-600 dark:text-yellow-400 text-sm font-medium">
-          🎮 DEMO MODE - Trades are simulated and do not use real funds
-        </p>
-      </div>
+      {/* Trading Mode Banner */}
+      {isConnected ? (
+        <div className="col-span-full bg-green-500/10 border border-green-500/30 rounded-lg p-2 mb-2">
+          <p className="text-center text-green-600 dark:text-green-400 text-sm font-medium">
+            🔗 LIVE TRADING - Wallet connected • Real funds will be used
+          </p>
+        </div>
+      ) : (
+        <div className="col-span-full bg-blue-500/10 border border-blue-500/30 rounded-lg p-2 mb-2">
+          <p className="text-center text-blue-600 dark:text-blue-400 text-sm font-medium">
+            👛 Connect your wallet in the Wallet tab to enable real trading
+          </p>
+        </div>
+      )}
       
       <div className="hidden xl:flex flex-col gap-4 min-h-0">
         <div className="flex-1 min-h-0">
@@ -87,7 +97,11 @@ const TradingView: React.FC<TradingViewProps> = ({ market, appConfig }) => {
       
       <div className="flex flex-col gap-4 min-h-0">
         <div className="flex-shrink-0">
-          <OrderForm market={market} price={orderPrice} setPrice={setOrderPrice} />
+          {isConnected ? (
+            <Web3Swap />
+          ) : (
+            <OrderForm market={market} price={orderPrice} setPrice={setOrderPrice} />
+          )}
         </div>
         <div className="flex-1 min-h-[300px] sm:min-h-[400px]">
           <TradingChart 
