@@ -6,6 +6,7 @@ import OrderBook from './OrderBook';
 import OrderForm from './OrderForm';
 import TradeHistory from './TradeHistory';
 import MarketInfo from './MarketInfo';
+import PriceAlerts from '../alerts/PriceAlerts';
 import { fetchLivePrice } from '../../services/geminiService';
 
 const FALLBACK_PRICES: Record<string, number> = {
@@ -25,6 +26,7 @@ const TradingView: React.FC<TradingViewProps> = ({ market, appConfig }) => {
   const [initialPrice, setInitialPrice] = useState<number>(0);
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [orderPrice, setOrderPrice] = useState<string>('');
+  const [currentPrices, setCurrentPrices] = useState<Record<string, number>>(FALLBACK_PRICES);
   
   const handlePriceClick = useCallback((price: number) => {
     setOrderPrice(price.toFixed(2));
@@ -56,6 +58,13 @@ const TradingView: React.FC<TradingViewProps> = ({ market, appConfig }) => {
       setOrderPrice(currentPrice.toFixed(2));
     }
   }, [currentPrice, orderPrice]);
+
+  // Update current prices for alerts
+  useEffect(() => {
+    if (currentPrice > 0) {
+      setCurrentPrices(prev => ({ ...prev, [market.base]: currentPrice }));
+    }
+  }, [currentPrice, market.base]);
 
   return (
     <main className="flex-1 p-2 sm:p-4 grid grid-cols-1 xl:grid-cols-[300px_1fr_340px] gap-4 h-full overflow-hidden">
@@ -91,8 +100,9 @@ const TradingView: React.FC<TradingViewProps> = ({ market, appConfig }) => {
         </div>
       </div>
 
-      <div className="hidden xl:flex flex-col min-h-0">
+      <div className="hidden xl:flex flex-col gap-4 min-h-0 overflow-auto">
         <MarketInfo market={market} />
+        <PriceAlerts currentPrices={currentPrices} />
       </div>
 
     </main>

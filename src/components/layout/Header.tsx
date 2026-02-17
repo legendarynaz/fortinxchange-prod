@@ -13,9 +13,9 @@ import { useTheme } from '../../context/ThemeContext';
 interface HeaderProps {
   selectedMarket: Market;
   onMarketChange: (market: Market) => void;
-  onNavigate: (view: 'trade' | 'wallet') => void;
+  onNavigate: (view: 'trade' | 'wallet' | 'history' | 'settings') => void;
   onLogout: () => void;
-  currentView: 'trade' | 'wallet';
+  currentView: 'trade' | 'wallet' | 'history' | 'settings';
   isKycVerified: boolean;
 }
 
@@ -98,6 +98,8 @@ const Header: React.FC<HeaderProps> = ({ selectedMarket, onMarketChange, onNavig
       <div className="flex items-center space-x-6">
         <NavButton onClick={() => onNavigate('trade')} isActive={currentView === 'trade'}>Trade</NavButton>
         <NavButton onClick={() => onNavigate('wallet')} isActive={currentView === 'wallet'}>Wallet</NavButton>
+        <NavButton onClick={() => onNavigate('history')} isActive={currentView === 'history'}>History</NavButton>
+        <NavButton onClick={() => onNavigate('settings')} isActive={currentView === 'settings'}>Settings</NavButton>
         
         <button
           onClick={toggleTheme}

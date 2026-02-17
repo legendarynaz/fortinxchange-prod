@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import Header from './components/layout/Header';
 import TradingView from './components/dashboard/TradingView';
 import WalletView from './components/wallet/WalletView';
+import TransactionHistory from './components/history/TransactionHistory';
+import SettingsView from './components/settings/SettingsView';
 import AuthView from './components/auth/AuthView';
 import Chatbot from './components/chatbot/Chatbot';
 import KYCView from './components/kyc/KYCView';
@@ -14,7 +16,7 @@ import { MARKETS } from './constants';
 import ChatBubbleIcon from './components/icons/ChatBubbleIcon';
 import { getAppConfig, getTransactions, saveTransactions } from './services/configService';
 
-type View = 'trade' | 'wallet';
+type View = 'trade' | 'wallet' | 'history' | 'settings';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -126,6 +128,17 @@ const App: React.FC = () => {
             user={user!}
             onAddTransaction={handleAddTransaction}
         />
+      )}
+      {currentView === 'history' && (
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+          <div className="max-w-6xl mx-auto">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">Transaction History</h1>
+            <TransactionHistory transactions={transactions} />
+          </div>
+        </main>
+      )}
+      {currentView === 'settings' && (
+        <SettingsView userEmail={user?.email || ''} />
       )}
       
       <div className="fixed bottom-6 right-6 z-50">
