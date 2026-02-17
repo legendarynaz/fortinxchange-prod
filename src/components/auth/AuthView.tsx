@@ -173,7 +173,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
   const renderSignup = () => (
     <>
       <h2 className="text-2xl font-bold text-center text-slate-900">Create Account</h2>
-      <p className="text-center text-slate-500 mb-8">Start your crypto journey with FortinXchange.</p>
+      <p className="text-center text-slate-500 mb-8">Join thousands of traders. Trade smarter, grow faster — your financial future starts here.</p>
       <form onSubmit={handleSignup} className="space-y-4">
         <Input 
           id="signup-email" 
