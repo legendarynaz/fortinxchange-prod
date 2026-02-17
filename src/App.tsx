@@ -120,6 +120,7 @@ const App: React.FC = () => {
         onLogout={handleLogout}
         currentView={currentView}
         isKycVerified={isKycVerified}
+        userEmail={user?.email}
       />
       {currentView === 'trade' && <TradingView market={selectedMarket} appConfig={appConfig} />}
       {currentView === 'portfolio' && (

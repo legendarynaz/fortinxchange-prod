@@ -18,9 +18,12 @@ interface HeaderProps {
   onLogout: () => void;
   currentView: 'trade' | 'wallet' | 'history' | 'settings' | 'referral' | 'portfolio';
   isKycVerified: boolean;
+  userEmail?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ selectedMarket, onMarketChange, onNavigate, onLogout, currentView, isKycVerified }) => {
+const Header: React.FC<HeaderProps> = ({ selectedMarket, onMarketChange, onNavigate, onLogout, currentView, isKycVerified, userEmail }) => {
+  const displayEmail = userEmail || 'user@email.com';
+  const userInitial = displayEmail.charAt(0).toUpperCase();
   const [isMarketOpen, setMarketOpen] = useState(false);
   const [isUserOpen, setUserOpen] = useState(false);
   const marketDropdownRef = useRef<HTMLDivElement>(null);
@@ -120,12 +123,12 @@ const Header: React.FC<HeaderProps> = ({ selectedMarket, onMarketChange, onNavig
         
         <div className="relative" ref={userDropdownRef}>
             <button onClick={() => setUserOpen(!isUserOpen)} className="w-8 h-8 rounded-full bg-sky-200 dark:bg-sky-700 flex items-center justify-center text-sky-700 dark:text-sky-200 font-bold hover:bg-sky-300 dark:hover:bg-sky-600">
-                U
+                {userInitial}
             </button>
             {isUserOpen && (
                  <div className="absolute top-full right-0 mt-2 w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg py-1 z-50">
                     <div className="px-4 py-2 border-b border-slate-200 dark:border-slate-700">
-                        <p className="text-sm font-medium text-slate-900 dark:text-white truncate">user@email.com</p>
+                        <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{displayEmail}</p>
                         {isKycVerified ? (
                            <div className="flex items-center text-xs text-green-600 font-semibold">
                                <CheckCircleIcon className="w-4 h-4 mr-1"/>
