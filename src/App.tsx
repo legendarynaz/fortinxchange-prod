@@ -45,6 +45,15 @@ const App: React.FC = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // Listen for custom navigate events from components
+  useEffect(() => {
+    const handleNavigateEvent = (e: CustomEvent<View>) => {
+      setCurrentView(e.detail);
+    };
+    window.addEventListener('navigate', handleNavigateEvent as EventListener);
+    return () => window.removeEventListener('navigate', handleNavigateEvent as EventListener);
+  }, []);
+
   const refreshConfig = () => {
     setAppConfig(getAppConfig());
   };
