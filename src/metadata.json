@@ -1,0 +1,8 @@
+
+{
+  "name": "FortinXchange",
+  "description": "An ultra-modern cryptocurrency exchange application named FortinXchange with real-time data visualization, advanced trading features, and AI-powered market analysis from Gemini.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
