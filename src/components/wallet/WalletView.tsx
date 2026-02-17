@@ -298,17 +298,21 @@ const WalletView: React.FC<WalletViewProps> = ({ isKycVerified, onRequireKyc, ap
                         <div className="flex justify-between items-center">
                             <div>
                                 <p className="text-blue-100 text-sm">
-                                    {isConnected ? `${CHAIN_NAMES[chainId] || 'Network'} Balance` : 'Demo Balance'}
+                                    {isConnected ? `${CHAIN_NAMES[chainId] || 'Network'} Balance` : 'Total Balance'}
                                 </p>
                                 <p className="text-4xl font-bold">
                                     {isConnected && nativeBalance 
                                         ? `${formatBalance(nativeBalance.value, nativeBalance.decimals)} ${nativeBalance.symbol}`
-                                        : '$377,500.00'
+                                        : '0.0000 ETH'
                                     }
                                 </p>
-                                {isConnected && (
+                                {isConnected ? (
                                     <p className="text-blue-200 text-sm mt-1">
                                         Connected to Web3 Wallet
+                                    </p>
+                                ) : (
+                                    <p className="text-blue-200 text-sm mt-1">
+                                        Connect wallet to view balance
                                     </p>
                                 )}
                             </div>
@@ -320,9 +324,7 @@ const WalletView: React.FC<WalletViewProps> = ({ isKycVerified, onRequireKyc, ap
                         </div>
                     </Card>
                     
-                    <h2 className="text-xl font-bold text-white mb-4">
-                        {isConnected ? 'On-Chain Assets' : 'Demo Assets'}
-                    </h2>
+                    <h2 className="text-xl font-bold text-white mb-4">Assets</h2>
                     <Card padding="p-0" className="bg-gray-800 border-gray-700">
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
@@ -345,15 +347,28 @@ const WalletView: React.FC<WalletViewProps> = ({ isKycVerified, onRequireKyc, ap
                                             <td className="px-6 py-4 text-right font-mono text-gray-300">-</td>
                                         </tr>
                                     ) : (
-                                        MOCK_ASSETS.map(asset => (
-                                            <tr key={asset.symbol} className="border-b border-gray-700 last:border-b-0 hover:bg-gray-700/50">
-                                                <td className="px-6 py-4 font-medium text-white">
-                                                    {asset.name} <span className="text-gray-400">{asset.symbol}</span>
-                                                </td>
-                                                <td className="px-6 py-4 text-right font-mono text-gray-300">{asset.balance}</td>
-                                                <td className="px-6 py-4 text-right font-mono text-gray-300">${asset.value}</td>
+                                        <>
+                                            <tr className="border-b border-gray-700 hover:bg-gray-700/50">
+                                                <td className="px-6 py-4 font-medium text-white">Ethereum <span className="text-gray-400">ETH</span></td>
+                                                <td className="px-6 py-4 text-right font-mono text-gray-300">0.000000</td>
+                                                <td className="px-6 py-4 text-right font-mono text-gray-300">$0.00</td>
                                             </tr>
-                                        ))
+                                            <tr className="border-b border-gray-700 hover:bg-gray-700/50">
+                                                <td className="px-6 py-4 font-medium text-white">Bitcoin <span className="text-gray-400">BTC</span></td>
+                                                <td className="px-6 py-4 text-right font-mono text-gray-300">0.00000000</td>
+                                                <td className="px-6 py-4 text-right font-mono text-gray-300">$0.00</td>
+                                            </tr>
+                                            <tr className="border-b border-gray-700 hover:bg-gray-700/50">
+                                                <td className="px-6 py-4 font-medium text-white">USDT <span className="text-gray-400">USDT</span></td>
+                                                <td className="px-6 py-4 text-right font-mono text-gray-300">0.000000</td>
+                                                <td className="px-6 py-4 text-right font-mono text-gray-300">$0.00</td>
+                                            </tr>
+                                            <tr className="border-b border-gray-700 last:border-b-0 hover:bg-gray-700/50">
+                                                <td className="px-6 py-4 font-medium text-white">USDC <span className="text-gray-400">USDC</span></td>
+                                                <td className="px-6 py-4 text-right font-mono text-gray-300">0.000000</td>
+                                                <td className="px-6 py-4 text-right font-mono text-gray-300">$0.00</td>
+                                            </tr>
+                                        </>
                                     )}
                                 </tbody>
                             </table>
