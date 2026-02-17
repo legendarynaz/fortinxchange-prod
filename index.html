@@ -48,6 +48,17 @@
 </head>
   <body class="bg-sky-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100">
     <div id="root"></div>
+    <script>
+      // Set dark mode immediately before React loads
+      (function() {
+        var theme = localStorage.getItem('theme');
+        if (!theme || theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
