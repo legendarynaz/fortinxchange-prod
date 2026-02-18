@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/layout/Header';
 import TradingView from './components/dashboard/TradingView';
+import CryptoBackground from './components/ui/CryptoBackground';
 import WalletView from './components/wallet/WalletView';
 import TransactionHistory from './components/history/TransactionHistory';
 import SettingsView from './components/settings/SettingsView';
@@ -121,7 +122,8 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen antialiased bg-sky-50 dark:bg-slate-950">
+    <div className="flex flex-col h-screen antialiased bg-sky-50 dark:bg-transparent relative">
+      <CryptoBackground />
       <Header 
         selectedMarket={selectedMarket} 
         onMarketChange={setSelectedMarket}
