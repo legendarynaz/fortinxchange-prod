@@ -4,6 +4,7 @@ import Button from '../ui/Button';
 import EyeIcon from '../icons/EyeIcon';
 import EyeSlashIcon from '../icons/EyeSlashIcon';
 import EnvelopeIcon from '../icons/EnvelopeIcon';
+import CryptoBackground from '../ui/CryptoBackground';
 import type { User } from '../../types';
 import { signUp, signIn, supabase } from '../../lib/supabase';
 import { sendEmail } from '../../emails/templates';
@@ -125,8 +126,8 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
 
   const renderLogin = () => (
     <>
-      <h2 className="text-2xl font-bold text-center text-slate-900">Welcome Back</h2>
-      <p className="text-center text-slate-500 mb-8">Login with your email.</p>
+      <h2 className="text-2xl font-bold text-center text-white">Welcome Back</h2>
+      <p className="text-center text-slate-400 mb-8">Login with your email.</p>
       
       <form onSubmit={handleLogin} className="space-y-4">
         <Input 
@@ -153,27 +154,27 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
             <button 
               type="button" 
               onClick={() => { setView('forgot_password'); setError(''); setMessage(''); }} 
-              className="text-xs font-semibold text-sky-600 hover:underline"
+              className="text-xs font-semibold text-sky-400 hover:underline"
             >
               Forgot Password?
             </button>
           </div>
         </div>
-        {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+        {error && <p className="text-red-400 text-sm text-center">{error}</p>}
         <Button type="submit" variant="primary" className="w-full !mt-6" disabled={isLoading}>
           {isLoading ? 'Logging in...' : 'Login'}
         </Button>
       </form>
-      <p className="text-center text-sm text-slate-500 mt-6">
-        Don't have an account? <button onClick={() => { setView('signup'); setError(''); }} className="font-semibold text-sky-600 hover:underline">Sign up</button>
+      <p className="text-center text-sm text-slate-400 mt-6">
+        Don't have an account? <button onClick={() => { setView('signup'); setError(''); }} className="font-semibold text-sky-400 hover:underline">Sign up</button>
       </p>
     </>
   );
 
   const renderSignup = () => (
     <>
-      <h2 className="text-2xl font-bold text-center text-slate-900">Create Account</h2>
-      <p className="text-center text-slate-500 mb-8">Join thousands of traders. Trade smarter, grow faster — your financial future starts here.</p>
+      <h2 className="text-2xl font-bold text-center text-white">Create Account</h2>
+      <p className="text-center text-slate-400 mb-8">Join thousands of traders. Trade smarter, grow faster — your financial future starts here.</p>
       <form onSubmit={handleSignup} className="space-y-4">
         <Input 
           id="signup-email" 
@@ -204,13 +205,13 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
           required 
           disabled={isLoading}
         />
-        {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+        {error && <p className="text-red-400 text-sm text-center">{error}</p>}
         <Button type="submit" variant="primary" className="w-full !mt-6" disabled={isLoading}>
           {isLoading ? 'Creating account...' : 'Create Account'}
         </Button>
       </form>
-      <p className="text-center text-sm text-slate-500 mt-6">
-        Already have an account? <button onClick={() => { setView('login'); setError(''); }} className="font-semibold text-sky-600 hover:underline">Login</button>
+      <p className="text-center text-sm text-slate-400 mt-6">
+        Already have an account? <button onClick={() => { setView('login'); setError(''); }} className="font-semibold text-sky-400 hover:underline">Login</button>
       </p>
     </>
   );
@@ -220,9 +221,9 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
       <div className="flex justify-center mb-6">
         <EnvelopeIcon className="w-16 h-16 text-sky-500"/>
       </div>
-      <h2 className="text-2xl font-bold text-center text-slate-900">Check Your Email</h2>
-      <p className="text-center text-slate-500 mb-8">
-        We've sent a confirmation link to <strong className="text-slate-700">{email}</strong>. Please check your inbox and click the link to verify your account.
+      <h2 className="text-2xl font-bold text-center text-white">Check Your Email</h2>
+      <p className="text-center text-slate-400 mb-8">
+        We've sent a confirmation link to <strong className="text-white">{email}</strong>. Please check your inbox and click the link to verify your account.
       </p>
       <Button onClick={() => setView('login')} variant="primary" className="w-full">
         Back to Login
@@ -232,8 +233,8 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
 
   const renderForgotPassword = () => (
     <>
-      <h2 className="text-2xl font-bold text-center text-slate-900">Reset Password</h2>
-      <p className="text-center text-slate-500 mb-8">Enter your email to receive a reset link.</p>
+      <h2 className="text-2xl font-bold text-center text-white">Reset Password</h2>
+      <p className="text-center text-slate-400 mb-8">Enter your email to receive a reset link.</p>
       <form onSubmit={handleForgotPassword} className="space-y-4">
         <Input 
           id="forgot-email" 
@@ -244,14 +245,14 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
           required 
           disabled={isLoading}
         />
-        {error && <p className="text-red-600 text-sm text-center">{error}</p>}
-        {message && <p className="text-green-600 text-sm text-center">{message}</p>}
+        {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+        {message && <p className="text-green-400 text-sm text-center">{message}</p>}
         <Button type="submit" variant="primary" className="w-full !mt-6" disabled={isLoading}>
           {isLoading ? 'Sending...' : 'Send Reset Link'}
         </Button>
       </form>
-      <p className="text-center text-sm text-slate-500 mt-6">
-        Remember your password? <button onClick={() => { setView('login'); setError(''); setMessage(''); }} className="font-semibold text-sky-600 hover:underline">Back to Login</button>
+      <p className="text-center text-sm text-slate-400 mt-6">
+        Remember your password? <button onClick={() => { setView('login'); setError(''); setMessage(''); }} className="font-semibold text-sky-400 hover:underline">Back to Login</button>
       </p>
     </>
   );
@@ -293,8 +294,8 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
 
   const renderResetPassword = () => (
     <>
-      <h2 className="text-2xl font-bold text-center text-slate-900">Set New Password</h2>
-      <p className="text-center text-slate-500 mb-8">Enter your new password below.</p>
+      <h2 className="text-2xl font-bold text-center text-white">Set New Password</h2>
+      <p className="text-center text-slate-400 mb-8">Enter your new password below.</p>
       <form onSubmit={handleResetPassword} className="space-y-4">
         <PasswordInput 
           id="new-password" 
@@ -316,8 +317,8 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
           required 
           disabled={isLoading}
         />
-        {error && <p className="text-red-600 text-sm text-center">{error}</p>}
-        {message && <p className="text-green-600 text-sm text-center">{message}</p>}
+        {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+        {message && <p className="text-green-400 text-sm text-center">{message}</p>}
         <Button type="submit" variant="primary" className="w-full !mt-6" disabled={isLoading}>
           {isLoading ? 'Updating...' : 'Update Password'}
         </Button>
@@ -326,13 +327,14 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
   );
 
   return (
-    <div className="min-h-screen bg-sky-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-4 relative">
+      <CryptoBackground />
       <div className="w-full max-w-md">
         <div className="flex justify-center items-center gap-3 mb-6">
           <LogoIcon />
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tighter">FortinXchange</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tighter">FortinXchange</h1>
         </div>
-        <div className="bg-white border border-slate-200/80 rounded-lg p-8 shadow-sm">
+        <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl p-8 shadow-2xl">
           {view === 'login' && renderLogin()}
           {view === 'signup' && renderSignup()}
           {view === 'check_email' && renderCheckEmail()}
@@ -346,18 +348,18 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
 
 const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ id, label, ...props }) => (
   <div>
-    <label htmlFor={id} className="text-sm font-medium text-slate-600 block mb-2">{label}</label>
-    <input id={id} {...props} className="w-full bg-slate-50 border border-slate-300 rounded-md py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-sky-500 focus:border-sky-500 disabled:bg-slate-200 disabled:cursor-not-allowed" />
+    <label htmlFor={id} className="text-sm font-medium text-slate-300 block mb-2">{label}</label>
+    <input id={id} {...props} className="w-full bg-slate-800/50 border border-slate-600 rounded-md py-2.5 px-3 text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 disabled:bg-slate-700/50 disabled:cursor-not-allowed" />
   </div>
 );
 
 const PasswordInput: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string; show: boolean; onToggleVisibility: () => void; }> = 
 ({ id, label, show, onToggleVisibility, ...props }) => (
   <div>
-    <label htmlFor={id} className="text-sm font-medium text-slate-600 block mb-2">{label}</label>
+    <label htmlFor={id} className="text-sm font-medium text-slate-300 block mb-2">{label}</label>
     <div className="relative">
-      <input id={id} type={show ? 'text' : 'password'} {...props} className="w-full bg-slate-50 border border-slate-300 rounded-md py-2 px-3 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-sky-500 focus:border-sky-500 disabled:bg-slate-200 disabled:cursor-not-allowed" />
-      <button type="button" onClick={onToggleVisibility} className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 hover:text-slate-800">
+      <input id={id} type={show ? 'text' : 'password'} {...props} className="w-full bg-slate-800/50 border border-slate-600 rounded-md py-2.5 px-3 text-sm text-white placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 disabled:bg-slate-700/50 disabled:cursor-not-allowed" />
+      <button type="button" onClick={onToggleVisibility} className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-white">
         {show ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
       </button>
     </div>
