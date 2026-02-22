@@ -1,73 +1,184 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 const CryptoBackground: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationId: number;
+    const stars: { x: number; y: number; size: number; speed: number; opacity: number }[] = [];
+    const bubbles: { x: number; y: number; size: number; speedX: number; speedY: number; hue: number; opacity: number }[] = [];
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      initParticles();
+    };
+
+    const initParticles = () => {
+      stars.length = 0;
+      bubbles.length = 0;
+
+      const starCount = Math.floor((canvas.width * canvas.height) / 8000);
+      for (let i = 0; i < starCount; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: Math.random() * 2 + 0.5,
+          speed: Math.random() * 0.02 + 0.01,
+          opacity: Math.random() * 0.8 + 0.2,
+        });
+      }
+
+      for (let i = 0; i < 15; i++) {
+        bubbles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: Math.random() * 60 + 25,
+          speedX: (Math.random() - 0.5) * 0.3,
+          speedY: (Math.random() - 0.5) * 0.3,
+          hue: Math.random() * 60 + 200,
+          opacity: Math.random() * 0.1 + 0.05,
+        });
+      }
+    };
+
+    const draw = (time: number) => {
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#030712');
+      gradient.addColorStop(0.5, '#0a0f1a');
+      gradient.addColorStop(1, '#0d1117');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Nebula
+      const nebula1 = ctx.createRadialGradient(0, canvas.height, 0, 0, canvas.height, canvas.height * 0.6);
+      nebula1.addColorStop(0, 'rgba(139, 92, 246, 0.15)');
+      nebula1.addColorStop(1, 'rgba(139, 92, 246, 0)');
+      ctx.fillStyle = nebula1;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const nebula2 = ctx.createRadialGradient(canvas.width, 0, 0, canvas.width, 0, canvas.width * 0.5);
+      nebula2.addColorStop(0, 'rgba(59, 130, 246, 0.1)');
+      nebula2.addColorStop(1, 'rgba(59, 130, 246, 0)');
+      ctx.fillStyle = nebula2;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Bubbles
+      bubbles.forEach((b) => {
+        b.x += b.speedX;
+        b.y += b.speedY;
+        if (b.x < -b.size) b.x = canvas.width + b.size;
+        if (b.x > canvas.width + b.size) b.x = -b.size;
+        if (b.y < -b.size) b.y = canvas.height + b.size;
+        if (b.y > canvas.height + b.size) b.y = -b.size;
+
+        const pulse = Math.sin(time * 0.001 + b.hue) * 0.15 + 1;
+        const size = b.size * pulse;
+        const bubbleGrad = ctx.createRadialGradient(b.x - size * 0.3, b.y - size * 0.3, 0, b.x, b.y, size);
+        bubbleGrad.addColorStop(0, `hsla(${b.hue}, 70%, 60%, ${b.opacity})`);
+        bubbleGrad.addColorStop(0.6, `hsla(${b.hue}, 60%, 50%, ${b.opacity * 0.4})`);
+        bubbleGrad.addColorStop(1, `hsla(${b.hue}, 50%, 40%, 0)`);
+        ctx.fillStyle = bubbleGrad;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Stars
+      stars.forEach((s) => {
+        const twinkle = Math.sin(time * s.speed + s.x) * 0.4 + 0.6;
+        ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity * twinkle})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (s.size > 1.5) {
+          const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.size * 3);
+          glow.addColorStop(0, `rgba(255, 255, 255, ${s.opacity * twinkle * 0.4})`);
+          glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.size * 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+
+      // Planet
+      const px = canvas.width * 0.88;
+      const py = canvas.height * 0.12;
+      const pr = Math.min(canvas.width, canvas.height) * 0.09;
+
+      const planetGlow = ctx.createRadialGradient(px, py, pr * 0.5, px, py, pr * 2.5);
+      planetGlow.addColorStop(0, 'rgba(240, 185, 11, 0.3)');
+      planetGlow.addColorStop(0.5, 'rgba(240, 185, 11, 0.1)');
+      planetGlow.addColorStop(1, 'rgba(240, 185, 11, 0)');
+      ctx.fillStyle = planetGlow;
+      ctx.beginPath();
+      ctx.arc(px, py, pr * 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      const planetGrad = ctx.createRadialGradient(px - pr * 0.3, py - pr * 0.3, 0, px, py, pr);
+      planetGrad.addColorStop(0, '#FFD93D');
+      planetGrad.addColorStop(0.5, '#F0B90B');
+      planetGrad.addColorStop(1, '#B8860B');
+      ctx.fillStyle = planetGrad;
+      ctx.beginPath();
+      ctx.arc(px, py, pr, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Ring
+      ctx.save();
+      ctx.translate(px, py);
+      ctx.rotate(0.4);
+      ctx.scale(1, 0.3);
+      const ringGrad = ctx.createLinearGradient(-pr * 1.8, 0, pr * 1.8, 0);
+      ringGrad.addColorStop(0, 'rgba(240, 185, 11, 0)');
+      ringGrad.addColorStop(0.3, 'rgba(240, 185, 11, 0.6)');
+      ringGrad.addColorStop(0.5, 'rgba(255, 217, 61, 0.8)');
+      ringGrad.addColorStop(0.7, 'rgba(240, 185, 11, 0.6)');
+      ringGrad.addColorStop(1, 'rgba(240, 185, 11, 0)');
+      ctx.strokeStyle = ringGrad;
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.arc(0, 0, pr * 1.6, Math.PI * 0.1, Math.PI * 0.9);
+      ctx.stroke();
+      ctx.restore();
+
+      // Orbiting particles
+      for (let i = 0; i < 5; i++) {
+        const angle = (time * 0.0008 + (i * Math.PI * 2) / 5) % (Math.PI * 2);
+        const ox = px + Math.cos(angle) * pr * 1.8;
+        const oy = py + Math.sin(angle) * pr * 1.8 * 0.3;
+        ctx.fillStyle = `rgba(255, 217, 61, ${0.5 + Math.sin(time * 0.003 + i) * 0.3})`;
+        ctx.beginPath();
+        ctx.arc(ox, oy, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      animationId = requestAnimationFrame(draw);
+    };
+
+    resize();
+    window.addEventListener('resize', resize);
+    animationId = requestAnimationFrame(draw);
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      cancelAnimationFrame(animationId);
+    };
+  }, []);
+
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-      {/* Gradient Base */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950" />
-      
-      {/* Animated Grid */}
-      <div 
-        className="absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(59, 130, 246, 0.5) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59, 130, 246, 0.5) 1px, transparent 1px)
-          `,
-          backgroundSize: '50px 50px',
-        }}
-      />
-      
-      {/* Radial Glow Effects */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-3xl" />
-      
-      {/* Floating Crypto Symbols */}
-      <div className="absolute inset-0">
-        {/* Bitcoin */}
-        <div className="absolute top-[10%] left-[5%] text-4xl opacity-[0.06] animate-float-slow">₿</div>
-        <div className="absolute top-[60%] right-[8%] text-5xl opacity-[0.04] animate-float-medium">₿</div>
-        
-        {/* Ethereum */}
-        <div className="absolute top-[20%] right-[15%] text-4xl opacity-[0.05] animate-float-medium">Ξ</div>
-        <div className="absolute bottom-[25%] left-[12%] text-5xl opacity-[0.04] animate-float-slow">Ξ</div>
-        
-        {/* Dollar */}
-        <div className="absolute top-[40%] left-[20%] text-3xl opacity-[0.03] animate-float-fast">$</div>
-        <div className="absolute bottom-[15%] right-[25%] text-4xl opacity-[0.04] animate-float-slow">$</div>
-        
-        {/* Chart symbols */}
-        <div className="absolute top-[75%] left-[35%] text-3xl opacity-[0.04] animate-float-medium">📈</div>
-        <div className="absolute top-[15%] left-[45%] text-2xl opacity-[0.03] animate-float-fast">📊</div>
-        
-        {/* More crypto symbols */}
-        <div className="absolute top-[50%] right-[5%] text-3xl opacity-[0.03] animate-float-slow">◈</div>
-        <div className="absolute bottom-[40%] left-[8%] text-4xl opacity-[0.04] animate-float-medium">⬡</div>
-        <div className="absolute top-[30%] left-[60%] text-3xl opacity-[0.03] animate-float-fast">◇</div>
-      </div>
-      
-      {/* Animated Lines */}
-      <svg className="absolute inset-0 w-full h-full opacity-[0.02]">
-        <defs>
-          <linearGradient id="line-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="rgb(59, 130, 246)" stopOpacity="0" />
-            <stop offset="50%" stopColor="rgb(59, 130, 246)" stopOpacity="1" />
-            <stop offset="100%" stopColor="rgb(59, 130, 246)" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <line x1="0" y1="30%" x2="100%" y2="30%" stroke="url(#line-gradient)" strokeWidth="1" className="animate-pulse" />
-        <line x1="0" y1="70%" x2="100%" y2="70%" stroke="url(#line-gradient)" strokeWidth="1" className="animate-pulse" style={{ animationDelay: '1s' }} />
-      </svg>
-      
-      {/* Noise texture overlay */}
-      <div 
-        className="absolute inset-0 opacity-[0.015]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-        }}
-      />
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 -z-10 pointer-events-none"
+    />
   );
 };
 

@@ -11,7 +11,7 @@ interface CurrencyContextType {
   rates: Record<FiatCurrency, number>;
 }
 
-const CURRENCY_STORAGE_KEY = 'fortinx_fiat_currency';
+const CURRENCY_STORAGE_KEY = '4ortinx_fiat_currency';
 
 // Exchange rates relative to USD (as of implementation)
 // In production, these would be fetched from an API

@@ -6,13 +6,13 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // Email templates
 const templates: Record<string, { subject: string; html: (params: Record<string, string | number>) => string }> = {
   welcome: {
-    subject: 'Welcome to FortinXchange!',
+    subject: 'Welcome to 4ortinXchange!',
     html: (params) => `
-      <h1>Welcome to FortinXchange!</h1>
+      <h1>Welcome to 4ortinXchange!</h1>
       <p>Hello,</p>
-      <p>We're thrilled to have you join FortinXchange!</p>
+      <p>We're thrilled to have you join 4ortinXchange!</p>
       <p>Your account has been created successfully with email: <strong>${params.email}</strong></p>
-      <p>Happy trading,<br/>The FortinXchange Team</p>
+      <p>Happy trading,<br/>The 4ortinXchange Team</p>
     `
   },
   transactionPending: {
@@ -22,7 +22,7 @@ const templates: Record<string, { subject: string; html: (params: Record<string,
       <p>Hello,</p>
       <p>Your ${params.type} of <strong>${params.amount} ${params.asset}</strong> has been submitted and is pending manual approval.</p>
       <p>We will notify you once it has been processed.</p>
-      <p>Thanks,<br/>The FortinXchange Team</p>
+      <p>Thanks,<br/>The 4ortinXchange Team</p>
     `
   },
   depositSuccess: {
@@ -32,7 +32,7 @@ const templates: Record<string, { subject: string; html: (params: Record<string,
       <p>Hello,</p>
       <p>Your deposit of <strong>${params.amount} ${params.asset}</strong> has been successfully processed.</p>
       <p>Transaction ID: ${params.txId}</p>
-      <p>Thanks,<br/>The FortinXchange Team</p>
+      <p>Thanks,<br/>The 4ortinXchange Team</p>
     `
   },
   depositFailed: {
@@ -43,7 +43,7 @@ const templates: Record<string, { subject: string; html: (params: Record<string,
       <p>Your deposit of <strong>${params.amount} ${params.asset}</strong> has failed.</p>
       <p>Reason: ${params.reason}</p>
       <p>Please contact support if you need assistance.</p>
-      <p>Thanks,<br/>The FortinXchange Team</p>
+      <p>Thanks,<br/>The 4ortinXchange Team</p>
     `
   },
   withdrawalSuccess: {
@@ -54,7 +54,7 @@ const templates: Record<string, { subject: string; html: (params: Record<string,
       <p>Your withdrawal of <strong>${params.amount} ${params.asset}</strong> has been processed.</p>
       <p>Destination: ${params.address}</p>
       <p>Transaction ID: ${params.txId}</p>
-      <p>Thanks,<br/>The FortinXchange Team</p>
+      <p>Thanks,<br/>The 4ortinXchange Team</p>
     `
   },
   withdrawalFailed: {
@@ -65,7 +65,7 @@ const templates: Record<string, { subject: string; html: (params: Record<string,
       <p>Your withdrawal of <strong>${params.amount} ${params.asset}</strong> has failed.</p>
       <p>Reason: ${params.reason}</p>
       <p>Please contact support if you need assistance.</p>
-      <p>Thanks,<br/>The FortinXchange Team</p>
+      <p>Thanks,<br/>The 4ortinXchange Team</p>
     `
   },
   kycRequired: {
@@ -75,7 +75,7 @@ const templates: Record<string, { subject: string; html: (params: Record<string,
       <p>Hello,</p>
       <p>To continue with transactions over <strong>$${params.threshold}</strong>, you need to complete identity verification.</p>
       <p>Please log in to your account and follow the prompts to verify your identity.</p>
-      <p>Thanks,<br/>The FortinXchange Team</p>
+      <p>Thanks,<br/>The 4ortinXchange Team</p>
     `
   },
 };
@@ -98,7 +98,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'FortinXchange <onboarding@resend.dev>',
+      from: '4ortinXchange <onboarding@resend.dev>',
       to: [to],
       subject: emailTemplate.subject,
       html: emailTemplate.html(params || {}),

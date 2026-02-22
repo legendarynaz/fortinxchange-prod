@@ -1,13 +1,18 @@
 {
-  "name": "FortinXchange",
-  "short_name": "FortinX",
-  "description": "Cryptocurrency Exchange Platform - Trade, Track, and Manage Your Crypto Portfolio",
+  "name": "4ortin-X Wallet",
+  "short_name": "4ortin-X",
+  "description": "Non-custodial crypto wallet - Buy, store, swap tokens across multiple blockchains",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0ea5e9",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#0D1117",
+  "theme_color": "#F0B90B",
   "orientation": "portrait-primary",
   "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
@@ -62,19 +67,29 @@
   "screenshots": [],
   "shortcuts": [
     {
-      "name": "Trade",
-      "url": "/?view=trade",
-      "description": "Go to trading view"
-    },
-    {
-      "name": "Portfolio",
-      "url": "/?view=portfolio",
-      "description": "View your portfolio"
-    },
-    {
       "name": "Wallet",
+      "short_name": "Wallet",
       "url": "/?view=wallet",
-      "description": "Manage your wallet"
+      "description": "View your wallet and balances",
+      "icons": [{"src": "/icons/icon-96x96.png", "sizes": "96x96"}]
+    },
+    {
+      "name": "Swap Tokens",
+      "short_name": "Swap",
+      "url": "/?view=swap",
+      "description": "Swap tokens via DEX",
+      "icons": [{"src": "/icons/icon-96x96.png", "sizes": "96x96"}]
+    },
+    {
+      "name": "Buy Crypto",
+      "short_name": "Buy",
+      "url": "/?view=buy",
+      "description": "Buy crypto with card",
+      "icons": [{"src": "/icons/icon-96x96.png", "sizes": "96x96"}]
     }
-  ]
+  ],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
 }

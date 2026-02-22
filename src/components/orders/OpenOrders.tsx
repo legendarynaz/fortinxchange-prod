@@ -15,7 +15,7 @@ export interface OpenOrder {
   createdAt: string;
 }
 
-const STORAGE_KEY = 'fortinx_open_orders';
+const STORAGE_KEY = '4ortinx_open_orders';
 
 export const getStoredOrders = (): OpenOrder[] => {
   try {

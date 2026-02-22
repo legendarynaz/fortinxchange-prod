@@ -21,7 +21,7 @@ const SecurityPage: React.FC = () => {
             <div>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Bank-Grade Security</h2>
               <p className="text-slate-600 dark:text-slate-300">
-                FortinXchange employs multiple layers of security to protect your assets and personal information. We use industry-standard encryption and security practices.
+                4ortinXchange employs multiple layers of security to protect your assets and personal information. We use industry-standard encryption and security practices.
               </p>
             </div>
           </div>
@@ -167,7 +167,7 @@ const SecurityPage: React.FC = () => {
               <div>
                 <h4 className="font-medium text-slate-900 dark:text-white">Beware of Phishing</h4>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Always verify you're on the official FortinXchange website. We will never ask for your password via email.
+                  Always verify you're on the official 4ortinXchange website. We will never ask for your password via email.
                 </p>
               </div>
             </div>
@@ -197,7 +197,7 @@ const SecurityPage: React.FC = () => {
             <div>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Security Bug Bounty</h2>
               <p className="text-slate-600 dark:text-slate-300 mb-4">
-                Found a security vulnerability? We reward responsible disclosure. Contact our security team at <a href="mailto:security@fortinxchange.com" className="text-sky-600 dark:text-sky-400 hover:underline">security@fortinxchange.com</a>
+                Found a security vulnerability? We reward responsible disclosure. Contact our security team at <a href="mailto:security@4ortinxchange.com" className="text-sky-600 dark:text-sky-400 hover:underline">security@4ortinxchange.com</a>
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-400">
                 Please do not disclose vulnerabilities publicly before they have been addressed.

@@ -1,7 +1,7 @@
 
 import type { LoginAttemptInfo } from '../types';
 
-const ATTEMPTS_KEY_PREFIX = 'fortinXchange_loginAttempts_';
+const ATTEMPTS_KEY_PREFIX = 'x4ortinx_loginAttempts_';
 const MAX_ATTEMPTS = 4;
 const LOCKOUT_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 

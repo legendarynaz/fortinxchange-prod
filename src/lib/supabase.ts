@@ -11,7 +11,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Production site URL
 const SITE_URL = import.meta.env.PROD 
-  ? 'https://14digitalxchange.com' 
+  ? 'https://4ortin-x.com' 
   : window.location.origin;
 
 // Auth helper functions

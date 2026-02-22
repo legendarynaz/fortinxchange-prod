@@ -1,20 +1,20 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "com.fortinxchange.app"
+    namespace = "com.x4ortinx.app"
     compileSdk = rootProject.ext.compileSdkVersion
     
     signingConfigs {
         release {
-            storeFile file('fortinxchange-release.keystore')
-            storePassword 'fortinx2024'
-            keyAlias 'fortinxchange'
-            keyPassword 'fortinx2024'
+            storeFile file('4ortinxchange-release.keystore')
+            storePassword '4ortinx2024'
+            keyAlias '4ortinxchange'
+            keyPassword '4ortinx2024'
         }
     }
     
     defaultConfig {
-        applicationId "com.fortinxchange.app"
+        applicationId "com.x4ortinx.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

@@ -1,9 +1,9 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.fortinxchange.app',
-  appName: 'FortinXchange',
-  webDir: 'www.14digitalxchange.com'
+  appId: 'com.x4ortinx.app',
+  appName: '4ortin-X',
+  webDir: 'dist'
 };
 
 export default config;

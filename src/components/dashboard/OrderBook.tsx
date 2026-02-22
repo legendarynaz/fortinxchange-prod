@@ -1,77 +1,83 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { Order } from '../../types';
 import Card from '../ui/Card';
-
-const generateOrderBookData = (count: number, centerPrice: number, isBid: boolean): Order[] => {
-  const orders: Order[] = [];
-  let currentPrice = centerPrice;
-  for (let i = 0; i < count; i++) {
-    const priceFluctuation = Math.random() * (centerPrice * 0.001);
-    currentPrice += isBid ? -priceFluctuation : priceFluctuation;
-    const size = parseFloat((Math.random() * 5).toFixed(4));
-    orders.push({
-      price: parseFloat(currentPrice.toFixed(2)),
-      size,
-      total: parseFloat((currentPrice * size).toFixed(4)),
-    });
-  }
-  return orders.sort((a, b) => (isBid ? b.price - a.price : a.price - b.price));
-};
-
+import { getOrderBook, toSymbol } from '../../services/binanceService';
+import { Loader2 } from 'lucide-react';
 
 interface OrderBookProps {
     basePrice: number;
     onPriceClick: (price: number) => void;
+    symbol?: string;
 }
 
-const OrderBook: React.FC<OrderBookProps> = ({ basePrice, onPriceClick }) => {
+const OrderBook: React.FC<OrderBookProps> = ({ basePrice, onPriceClick, symbol = 'BTC' }) => {
   const [bids, setBids] = useState<Order[]>([]);
   const [asks, setAsks] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [updatedPrices, setUpdatedPrices] = useState<Record<string, 'up' | 'down'>>({});
-  const prevBasePriceRef = useRef(basePrice);
 
-  useEffect(() => {
-    if (basePrice > 0 && Math.abs(basePrice - prevBasePriceRef.current) > basePrice * 0.01) {
-        setBids(generateOrderBookData(20, basePrice, true));
-        setAsks(generateOrderBookData(20, basePrice, false));
-        prevBasePriceRef.current = basePrice;
-    }
-  }, [basePrice]);
-
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-        const updateOrders = (orders: Order[], isBid: boolean) => {
-            if(orders.length === 0) return orders;
-            const newOrders = [...orders];
-            const randomIndex = Math.floor(Math.random() * newOrders.length);
-            const factor = 0.9 + Math.random() * 0.2;
-            const newSize = parseFloat((newOrders[randomIndex].size * factor).toFixed(4));
-            
-            const updatedPrice = newOrders[randomIndex].price;
-            setUpdatedPrices(prev => ({...prev, [updatedPrice]: factor > 1 ? 'up' : 'down'}));
-            setTimeout(() => setUpdatedPrices(prev => {
-                const copy = {...prev};
-                delete copy[updatedPrice];
-                return copy;
-            }), 750);
-
-            if (newSize > 0.001) {
-                newOrders[randomIndex].size = newSize;
-                newOrders[randomIndex].total = parseFloat((newOrders[randomIndex].price * newSize).toFixed(4));
-            } else {
-                newOrders.splice(randomIndex, 1);
-            }
-            return newOrders.sort((a, b) => (isBid ? b.price - a.price : a.price - b.price));
+  const fetchOrderBook = useCallback(async () => {
+    const binanceSymbol = toSymbol(symbol, 'USDT');
+    const data = await getOrderBook(binanceSymbol, 20);
+    
+    if (data) {
+      const prevBids = new Map(bids.map(b => [b.price.toString(), b.size]));
+      const prevAsks = new Map(asks.map(a => [a.price.toString(), a.size]));
+      
+      const newBids: Order[] = data.bids.map(b => {
+        const price = parseFloat(b.price);
+        const size = parseFloat(b.size);
+        const prevSize = prevBids.get(b.price);
+        
+        // Track price changes for animation
+        if (prevSize !== undefined && prevSize !== size) {
+          setUpdatedPrices(prev => ({ ...prev, [price]: size > prevSize ? 'up' : 'down' }));
+          setTimeout(() => setUpdatedPrices(prev => {
+            const copy = { ...prev };
+            delete copy[price];
+            return copy;
+          }), 750);
+        }
+        
+        return {
+          price,
+          size,
+          total: parseFloat((price * size).toFixed(4)),
         };
+      });
+      
+      const newAsks: Order[] = data.asks.map(a => {
+        const price = parseFloat(a.price);
+        const size = parseFloat(a.size);
+        const prevSize = prevAsks.get(a.price);
+        
+        if (prevSize !== undefined && prevSize !== size) {
+          setUpdatedPrices(prev => ({ ...prev, [price]: size > prevSize ? 'up' : 'down' }));
+          setTimeout(() => setUpdatedPrices(prev => {
+            const copy = { ...prev };
+            delete copy[price];
+            return copy;
+          }), 750);
+        }
+        
+        return {
+          price,
+          size,
+          total: parseFloat((price * size).toFixed(4)),
+        };
+      });
+      
+      setBids(newBids.sort((a, b) => b.price - a.price));
+      setAsks(newAsks.sort((a, b) => a.price - b.price));
+    }
+    setIsLoading(false);
+  }, [symbol, bids, asks]);
 
-        setBids(bids => updateOrders(bids, true));
-        setAsks(asks => updateOrders(asks, false));
-
-    }, 1500);
-
+  useEffect(() => {
+    fetchOrderBook();
+    const interval = setInterval(fetchOrderBook, 2000); // Update every 2s
     return () => clearInterval(interval);
-  }, []);
+  }, [symbol]); // Only re-setup on symbol change
   
   const OrderRow = ({ order, type }: { order: Order, type: 'bid' | 'ask'}) => {
     const barWidth = `${Math.min(order.total / 100, 1) * 100}%`;
@@ -95,27 +101,39 @@ const OrderBook: React.FC<OrderBookProps> = ({ basePrice, onPriceClick }) => {
 
   return (
     <Card className="h-full flex flex-col" padding="p-0">
-      <h3 className="text-base font-bold text-slate-900 p-3 border-b border-slate-200">Order Book</h3>
+      <div className="flex items-center justify-between p-3 border-b border-slate-200">
+        <h3 className="text-base font-bold text-slate-900">Order Book</h3>
+        <span className="text-xs text-green-600 flex items-center gap-1">
+          <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+          LIVE
+        </span>
+      </div>
       <div className="grid grid-cols-3 gap-2 text-xs font-semibold text-slate-500 p-2 px-2 bg-slate-50">
-        <span>Price (USDT)</span>
-        <span className="text-right">Amount (BTC)</span>
-        <span className="text-right">Total (USDT)</span>
+        <span>Price (USD)</span>
+        <span className="text-right">Amount ({symbol})</span>
+        <span className="text-right">Total (USD)</span>
       </div>
-      <div className="flex-grow overflow-y-auto">
-        <div className="h-1/2 flex flex-col-reverse">
-          {asks.slice(0, 20).map((ask, index) => (
-            <OrderRow key={index} order={ask} type="ask" />
-          ))}
+      {isLoading ? (
+        <div className="flex-grow flex items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
         </div>
-        <div className="py-2 text-center text-lg font-bold text-slate-800 border-y border-slate-200 bg-slate-50/50">
-          {basePrice > 0 ? basePrice.toFixed(2) : '-'}
+      ) : (
+        <div className="flex-grow overflow-y-auto">
+          <div className="h-1/2 flex flex-col-reverse">
+            {asks.slice(0, 20).map((ask, index) => (
+              <OrderRow key={index} order={ask} type="ask" />
+            ))}
+          </div>
+          <div className="py-2 text-center text-lg font-bold text-slate-800 border-y border-slate-200 bg-slate-50/50">
+            {basePrice > 0 ? basePrice.toFixed(2) : '-'}
+          </div>
+          <div className="h-1/2 flex flex-col">
+            {bids.slice(0, 20).map((bid, index) => (
+              <OrderRow key={index} order={bid} type="bid" />
+            ))}
+          </div>
         </div>
-        <div className="h-1/2 flex flex-col">
-          {bids.slice(0, 20).map((bid, index) => (
-            <OrderRow key={index} order={bid} type="bid" />
-          ))}
-        </div>
-      </div>
+      )}
     </Card>
   );
 };

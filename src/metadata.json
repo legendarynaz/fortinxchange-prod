@@ -1,7 +1,7 @@
 
 {
-  "name": "FortinXchange",
-  "description": "An ultra-modern cryptocurrency exchange application named FortinXchange with real-time data visualization, advanced trading features, and AI-powered market analysis from Gemini.",
+  "name": "4ortin-X",
+  "description": "4ortin-X - Your Web3 Crypto Wallet with live Binance trading, portfolio tracking, and DApp discovery.",
   "requestFramePermissions": [
     "camera"
   ]

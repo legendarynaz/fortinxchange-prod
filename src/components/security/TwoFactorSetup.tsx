@@ -7,7 +7,7 @@ import Modal from '../ui/Modal';
 import CheckCircleIcon from '../icons/CheckCircleIcon';
 import LockClosedIcon from '../icons/LockClosedIcon';
 
-const TWO_FA_STORAGE_KEY = 'fortinXchange_2fa';
+const TWO_FA_STORAGE_KEY = 'x4ortinx_2fa';
 
 // Generate cryptographically secure backup codes
 const generateBackupCodes = (count: number = 8): string[] => {
@@ -70,7 +70,7 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ userEmail }) => {
     
     const otpauth = generateURI({
       secret,
-      issuer: 'FortinXchange',
+      issuer: '4ortin-X',
       label: userEmail,
     });
     const qrUrl = await QRCode.toDataURL(otpauth);
@@ -150,12 +150,12 @@ const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ userEmail }) => {
   };
 
   const downloadBackupCodes = () => {
-    const content = `FortinXchange 2FA Backup Codes\n\nAccount: ${userEmail}\nGenerated: ${new Date().toISOString()}\n\n${tempBackupCodes.join('\n')}\n\nKeep these codes safe. Each code can only be used once.`;
+    const content = `4ortin-X 2FA Backup Codes\n\nAccount: ${userEmail}\nGenerated: ${new Date().toISOString()}\n\n${tempBackupCodes.join('\n')}\n\nKeep these codes safe. Each code can only be used once.`;
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'fortinxchange-backup-codes.txt';
+    a.download = '4ortinx-backup-codes.txt';
     a.click();
     URL.revokeObjectURL(url);
   };

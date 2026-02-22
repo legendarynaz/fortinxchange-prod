@@ -1,79 +1,73 @@
-const CACHE_NAME = 'fortinxchange-v1';
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-];
+const CACHE_NAME = '4ortinxchange-v4';
 
-// Install event - cache static assets
+// Install: skip pre-caching HTML to avoid stale pages
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
-  );
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// Activate: clear old caches and take control immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
-      );
-    })
+    caches.keys().then((cacheNames) =>
+      Promise.all(cacheNames.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)))
+    )
   );
   self.clients.claim();
 });
 
-// Fetch event - network first, fallback to cache
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') return;
+  const { request } = event;
+  if (request.method !== 'GET') return;
 
-  // Skip WebSocket connections
-  if (event.request.url.includes('stream.binance.com')) return;
+  const url = new URL(request.url);
 
-  // Skip API calls - always fetch fresh
-  if (event.request.url.includes('/api/')) return;
+  // Never cache HTML navigations; always go to network so users see latest build
+  const accept = request.headers.get('accept') || '';
+  const isHTML = request.mode === 'navigate' || accept.includes('text/html');
+  if (isHTML) {
+    event.respondWith(
+      fetch(request).catch(() => caches.match('/'))
+    );
+    return;
+  }
 
+  // Cache-first for versioned static assets under /assets/ (Vite hashed files)
+  if (url.pathname.startsWith('/assets/')) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        const fetchPromise = fetch(request)
+          .then((response) => {
+            if (response && response.status === 200) {
+              const copy = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+            }
+            return response;
+          })
+          .catch(() => cached);
+        return cached || fetchPromise;
+      })
+    );
+    return;
+  }
+
+  // Passthrough for APIs, websockets, etc.
+  if (url.pathname.startsWith('/api/') || url.hostname.includes('stream.binance.com')) return;
+
+  // Default: network-first with cache fallback
   event.respondWith(
-    fetch(event.request)
+    fetch(request)
       .then((response) => {
-        // Clone the response before caching
-        const responseClone = response.clone();
-        
-        // Only cache successful responses
-        if (response.status === 200) {
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
+        if (response && response.status === 200) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         }
-        
         return response;
       })
-      .catch(() => {
-        // Network failed, try cache
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          
-          // Return offline page for navigation requests
-          if (event.request.mode === 'navigate') {
-            return caches.match('/');
-          }
-          
-          return new Response('Offline', { status: 503 });
-        });
-      })
+      .catch(() => caches.match(request))
   );
 });
 
-// Handle push notifications (for future use)
+// Optional push/notification handlers (no change)
 self.addEventListener('push', (event) => {
   if (event.data) {
     const data = event.data.json();
@@ -82,22 +76,13 @@ self.addEventListener('push', (event) => {
       icon: '/icons/icon-192x192.png',
       badge: '/icons/icon-72x72.png',
       vibrate: [100, 50, 100],
-      data: {
-        url: data.url || '/',
-      },
+      data: { url: data.url || '/' },
     };
-    
-    event.waitUntil(
-      self.registration.showNotification(data.title, options)
-    );
+    event.waitUntil(self.registration.showNotification(data.title, options));
   }
 });
 
-// Handle notification click
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  
-  event.waitUntil(
-    clients.openWindow(event.notification.data.url)
-  );
+  event.waitUntil(clients.openWindow(event.notification.data.url));
 });

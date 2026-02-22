@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAccount } from 'wagmi';
 import type { Market, AppConfig } from '../../types';
 import TradingChart from './TradingChart';
 import OrderBook from './OrderBook';
@@ -7,8 +6,9 @@ import TradeHistory from './TradeHistory';
 import MarketInfo from './MarketInfo';
 import PriceAlerts from '../alerts/PriceAlerts';
 import OpenOrders from '../orders/OpenOrders';
-import Web3Swap from '../trading/Web3Swap';
+import BinanceTrade from '../trading/BinanceTrade';
 import { fetchLivePrice } from '../../services/geminiService';
+import { isConfigured as isBinanceConfigured } from '../../services/binanceService';
 
 const FALLBACK_PRICES: Record<string, number> = {
   'BTC': 68500,
@@ -24,7 +24,7 @@ interface TradingViewProps {
 }
 
 const TradingView: React.FC<TradingViewProps> = ({ market, appConfig }) => {
-  const { isConnected } = useAccount();
+  const binanceReady = isBinanceConfigured();
   const [initialPrice, setInitialPrice] = useState<number>(0);
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [orderPrice, setOrderPrice] = useState<string>('');
@@ -71,23 +71,24 @@ const TradingView: React.FC<TradingViewProps> = ({ market, appConfig }) => {
   return (
     <main className="flex-1 p-2 sm:p-4 grid grid-cols-1 xl:grid-cols-[300px_1fr_340px] gap-4 h-full overflow-hidden">
       {/* Trading Mode Banner */}
-      {isConnected ? (
-        <div className="col-span-full bg-green-500/10 border border-green-500/30 rounded-lg p-2 mb-2">
-          <p className="text-center text-green-600 dark:text-green-400 text-sm font-medium">
-            🔗 LIVE TRADING - Wallet connected • Real funds will be used
+      {binanceReady ? (
+        <div className="col-span-full bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2 mb-2">
+          <p className="text-center text-yellow-600 dark:text-yellow-400 text-sm font-medium flex items-center justify-center gap-2">
+            <span className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span>
+            LIVE TRADING via Binance • Real funds will be used
           </p>
         </div>
       ) : (
-        <div className="col-span-full bg-blue-500/10 border border-blue-500/30 rounded-lg p-2 mb-2">
-          <p className="text-center text-blue-600 dark:text-blue-400 text-sm font-medium">
-            👛 Connect your wallet in the Wallet tab to enable real trading
+        <div className="col-span-full bg-gray-500/10 border border-gray-500/30 rounded-lg p-2 mb-2">
+          <p className="text-center text-gray-400 text-sm font-medium">
+            ⚠️ Add Binance API credentials to enable live trading
           </p>
         </div>
       )}
       
       <div className="hidden xl:flex flex-col gap-4 min-h-0">
         <div className="flex-1 min-h-0">
-          <OrderBook basePrice={currentPrice} onPriceClick={handlePriceClick} />
+          <OrderBook basePrice={currentPrice} onPriceClick={handlePriceClick} symbol={market.base} />
         </div>
         <div className="flex-1 min-h-0">
          <TradeHistory market={market} basePrice={currentPrice} />
@@ -96,42 +97,7 @@ const TradingView: React.FC<TradingViewProps> = ({ market, appConfig }) => {
       
       <div className="flex flex-col gap-4 min-h-0">
         <div className="flex-shrink-0">
-          {isConnected ? (
-            <Web3Swap />
-          ) : (
-            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-2">Start Trading</h3>
-                <p className="text-gray-400 text-sm mb-6">
-                  Connect your wallet or deposit funds to begin real-time trading
-                </p>
-                <div className="space-y-3">
-                  <a 
-                    href="#" 
-                    onClick={(e) => { e.preventDefault(); window.dispatchEvent(new CustomEvent('navigate', { detail: 'wallet' })); }}
-                    className="block w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium py-3 px-4 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all"
-                  >
-                    Connect Wallet
-                  </a>
-                  <a 
-                    href="#" 
-                    onClick={(e) => { e.preventDefault(); window.dispatchEvent(new CustomEvent('navigate', { detail: 'wallet' })); }}
-                    className="block w-full bg-gray-700 text-white font-medium py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors"
-                  >
-                    Deposit Funds
-                  </a>
-                </div>
-                <p className="text-xs text-gray-500 mt-4">
-                  Trade ETH, USDT, USDC, WBTC on decentralized exchanges
-                </p>
-              </div>
-            </div>
-          )}
+          <BinanceTrade symbol={market.base} currentPrice={currentPrice} />
         </div>
         <div className="flex-1 min-h-[300px] sm:min-h-[400px]">
           <TradingChart 
@@ -143,7 +109,7 @@ const TradingView: React.FC<TradingViewProps> = ({ market, appConfig }) => {
         </div>
         <div className="xl:hidden flex flex-col md:flex-row gap-4">
             <div className="flex-1 min-h-[400px]">
-                <OrderBook basePrice={currentPrice} onPriceClick={handlePriceClick} />
+                <OrderBook basePrice={currentPrice} onPriceClick={handlePriceClick} symbol={market.base} />
             </div>
             <div className="flex-1 min-h-[400px]">
                 <TradeHistory market={market} basePrice={currentPrice} />

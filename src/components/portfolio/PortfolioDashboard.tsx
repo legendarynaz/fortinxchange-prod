@@ -17,7 +17,7 @@ interface PriceData {
   change24h: number;
 }
 
-const STORAGE_KEY = 'fortinx_portfolio_holdings';
+const STORAGE_KEY = '4ortinx_portfolio_holdings';
 
 // Mock initial holdings - in production these would come from backend
 const DEFAULT_HOLDINGS: Holding[] = [

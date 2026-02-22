@@ -1,4 +1,4 @@
-package com.fortinxchange.app;
+package com.x4ortinx.app;
 
 import com.getcapacitor.BridgeActivity;
 

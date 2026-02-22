@@ -14,7 +14,7 @@ export interface PriceAlert {
   triggered: boolean;
 }
 
-const ALERTS_STORAGE_KEY = 'fortinXchange_priceAlerts';
+const ALERTS_STORAGE_KEY = 'x4ortinx_priceAlerts';
 
 const getStoredAlerts = (): PriceAlert[] => {
   try {

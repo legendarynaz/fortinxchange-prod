@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import LogoIcon from '../icons/LogoIcon';
 import Button from '../ui/Button';
 import EyeIcon from '../icons/EyeIcon';
 import EyeSlashIcon from '../icons/EyeSlashIcon';
@@ -109,7 +108,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
     setIsLoading(true);
 
     const redirectUrl = import.meta.env.PROD 
-      ? 'https://14digitalxchange.com' 
+      ? 'https://4ortin-x.com' 
       : window.location.origin;
     
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -327,14 +326,16 @@ const AuthView: React.FC<AuthViewProps> = ({ onLoginSuccess }) => {
   );
 
   return (
-    <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-4 relative">
+    <div className="min-h-screen bg-[#0D1117] flex flex-col items-center justify-center p-4 relative">
       <CryptoBackground />
       <div className="w-full max-w-md">
         <div className="flex justify-center items-center gap-3 mb-6">
-          <LogoIcon />
-          <h1 className="text-3xl font-bold text-white tracking-tighter">FortinXchange</h1>
+          <div className="w-12 h-12 bg-[#F0B90B]/20 rounded-xl flex items-center justify-center">
+            <span className="text-[#F0B90B] font-bold text-xl">FX</span>
+          </div>
+          <h1 className="text-3xl font-bold text-white tracking-tighter">4ortin-X</h1>
         </div>
-        <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl p-8 shadow-2xl">
+        <div className="bg-[#1A1A2E]/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-8 shadow-2xl">
           {view === 'login' && renderLogin()}
           {view === 'signup' && renderSignup()}
           {view === 'check_email' && renderCheckEmail()}

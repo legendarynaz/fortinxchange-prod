@@ -2,8 +2,8 @@
 import type { AppConfig, Transaction } from '../types';
 import { DEFAULT_CONFIG } from '../config';
 
-const CONFIG_KEY = 'fortinXchange_appConfig';
-const TRANSACTIONS_KEY = 'fortinXchange_transactions';
+const CONFIG_KEY = 'x4ortinx_appConfig';
+const TRANSACTIONS_KEY = 'x4ortinx_transactions';
 
 // --- Configuration Management ---
 

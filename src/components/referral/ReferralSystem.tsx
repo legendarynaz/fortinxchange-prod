@@ -17,7 +17,7 @@ interface ReferralEntry {
   reward: number;
 }
 
-const STORAGE_KEY = 'fortinx_referral_data';
+const STORAGE_KEY = '4ortinx_referral_data';
 const REWARD_PER_REFERRAL = 10; // $10 USD equivalent
 
 const generateReferralCode = (): string => {
@@ -107,7 +107,7 @@ const ReferralSystem: React.FC = () => {
 
   const shareVia = (platform: 'twitter' | 'whatsapp' | 'telegram') => {
     const link = getReferralLink();
-    const message = `Join FortinXchange and get started with crypto trading! Use my referral code: ${referralData?.code}`;
+    const message = `Join 4ortinXchange and get started with crypto trading! Use my referral code: ${referralData?.code}`;
     
     const urls: Record<string, string> = {
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(link)}`,

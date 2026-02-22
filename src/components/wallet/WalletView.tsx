@@ -1,20 +1,15 @@
-import React, { useState } from 'react';
-import { useAccount, useBalance, useChainId } from 'wagmi';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useAccount, useBalance, useChainId, useReadContracts } from 'wagmi';
+import { erc20Abi } from 'viem';
+import { Loader2 } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import { Tabs } from '../ui/Tabs';
-import { simulateSendEmail } from '../../emails/templates';
 import WalletConnect from './WalletConnect';
-import { CHAIN_NAMES } from '../../config/web3';
+import { CHAIN_NAMES, SUPPORTED_TOKENS } from '../../config/web3';
+import { getBalances, isConfigured as isBinanceConfigured, type BinanceAccount } from '../../services/binanceService';
 import type { BankAccount, AppConfig, User, Transaction } from '../../types';
-
-const MOCK_ASSETS = [
-    { name: 'Bitcoin', symbol: 'BTC', balance: '1.50000000', value: '97,500.00' },
-    { name: 'Ethereum', symbol: 'ETH', balance: '30.00000000', value: '105,000.00' },
-    { name: 'Tether', symbol: 'USDT', balance: '100,000.0000', value: '100,000.00' },
-    { name: 'Solana', symbol: 'SOL', balance: '500.000000', value: '75,000.00' },
-];
 
 type DepositType = 'card' | 'bank';
 
@@ -32,18 +27,102 @@ const WalletView: React.FC<WalletViewProps> = ({ isKycVerified, onRequireKyc, ap
     const [isAddBankOpen, setAddBankOpen] = useState(false);
     const [linkedAccounts] = useState<BankAccount[]>([]);
     
+    // Binance balances
+    const [binanceBalances, setBinanceBalances] = useState<BinanceAccount[]>([]);
+    const [isBinanceLoading, setIsBinanceLoading] = useState(false);
+    const binanceConfigured = isBinanceConfigured();
+    
+    useEffect(() => {
+        if (!binanceConfigured) return;
+        
+        const fetchBinanceBalances = async () => {
+            setIsBinanceLoading(true);
+            try {
+                const balances = await getBalances();
+                setBinanceBalances(balances);
+            } catch (err) {
+                console.error('Failed to fetch Binance balances:', err);
+            }
+            setIsBinanceLoading(false);
+        };
+        
+        fetchBinanceBalances();
+        const interval = setInterval(fetchBinanceBalances, 30000);
+        return () => clearInterval(interval);
+    }, [binanceConfigured]);
+    
+    // Calculate total USDT value from Binance
+    const binanceTotalUSDT = useMemo(() => {
+        const usdtAccount = binanceBalances.find(a => a.asset === 'USDT');
+        return parseFloat(usdtAccount?.free || '0') + parseFloat(usdtAccount?.locked || '0');
+    }, [binanceBalances]);
+    
     // Web3 hooks
     const { address, isConnected } = useAccount();
     const chainId = useChainId();
     const { data: nativeBalance } = useBalance({ address });
     
-    const formatBalance = (value: bigint, decimals: number, precision: number = 4) => {
+    // Token balances for connected chain using ERC20 balanceOf
+    const tokens = SUPPORTED_TOKENS[chainId] || [];
+    
+    const tokenContracts = useMemo(() => {
+        if (!address || tokens.length === 0) return [];
+        return tokens.map(token => ({
+            address: token.address,
+            abi: erc20Abi,
+            functionName: 'balanceOf',
+            args: [address],
+        }));
+    }, [address, tokens]);
+    
+    const { data: tokenBalanceResults } = useReadContracts({
+        contracts: tokenContracts,
+    });
+    
+    // Helper to format balance as string
+    const formatBalance = (value: bigint, decimals: number, precision: number = 6) => {
         const divisor = BigInt(10 ** decimals);
         const intPart = value / divisor;
         const fracPart = value % divisor;
         const fracStr = fracPart.toString().padStart(decimals, '0').slice(0, precision);
         return `${intPart}.${fracStr}`;
     };
+    
+    // Combine token info with balance results
+    const tokenBalances = useMemo(() => {
+        if (!tokenBalanceResults) return [];
+        return tokens.map((token, idx) => {
+            const result = tokenBalanceResults[idx];
+            if (result?.status !== 'success') return null;
+            return {
+                symbol: token.symbol,
+                value: result.result as bigint,
+                decimals: token.decimals,
+            };
+        }).filter(Boolean);
+    }, [tokens, tokenBalanceResults]);
+    
+    // Assets list for withdraw modal
+    const availableAssets = useMemo(() => {
+        const assets: { symbol: string; name: string; balance: string }[] = [];
+        if (nativeBalance) {
+            assets.push({
+                symbol: nativeBalance.symbol,
+                name: nativeBalance.symbol,
+                balance: formatBalance(nativeBalance.value, nativeBalance.decimals),
+            });
+        }
+        tokenBalances.forEach(token => {
+            if (token) {
+                assets.push({
+                    symbol: token.symbol,
+                    name: token.symbol,
+                    balance: formatBalance(token.value, token.decimals),
+                });
+            }
+        });
+        return assets.length > 0 ? assets : [{ symbol: 'ETH', name: 'Ethereum', balance: '0.00' }];
+    }, [nativeBalance, tokenBalances]);
     
     const DepositContent = () => {
         const [type, setType] = useState<DepositType>('card');
@@ -72,7 +151,6 @@ const WalletView: React.FC<WalletViewProps> = ({ isKycVerified, onRequireKyc, ap
 
             // KYC Check
             if (!isKycVerified && depositAmount > appConfig.kycThreshold) {
-                simulateSendEmail('kycRequired', { threshold: appConfig.kycThreshold });
                 onRequireKyc();
                 setDepositOpen(false);
                 return;
@@ -80,7 +158,7 @@ const WalletView: React.FC<WalletViewProps> = ({ isKycVerified, onRequireKyc, ap
             
             await new Promise(resolve => setTimeout(resolve, 1500));
 
-            // Smart Approval Check
+            // Process via Coinbase or traditional flow
             if (depositAmount > appConfig.manualApprovalThreshold) {
                 onAddTransaction({
                     userId: user.userId,
@@ -88,17 +166,9 @@ const WalletView: React.FC<WalletViewProps> = ({ isKycVerified, onRequireKyc, ap
                     amount: depositAmount,
                     asset: 'USD',
                 });
-                simulateSendEmail('transactionPending', { amount: depositAmount, asset: 'USD', type: 'Deposit' });
                 setStatus({ type: 'pending', message: `Your deposit of $${depositAmount} is pending approval.` });
             } else {
-                 // Auto-approve
-                if (Math.random() > 0.1) {
-                    setStatus({ type: 'success', message: `Successfully deposited $${amount}.` });
-                    simulateSendEmail('depositSuccess', { amount: depositAmount, asset: 'USD', txId: crypto.randomUUID() });
-                } else {
-                    setStatus({ type: 'error', message: 'Deposit failed. Please try again.' });
-                    simulateSendEmail('depositFailed', { amount: depositAmount, asset: 'USD', reason: 'Bank processing error' });
-                }
+                setStatus({ type: 'success', message: `Deposit of $${amount} initiated. It will appear in your balance shortly.` });
             }
             setIsProcessing(false);
         };
@@ -182,7 +252,6 @@ const WalletView: React.FC<WalletViewProps> = ({ isKycVerified, onRequireKyc, ap
 
             // KYC Check
             if (!isKycVerified && withdrawAmount > appConfig.kycThreshold) {
-                simulateSendEmail('kycRequired', { threshold: appConfig.kycThreshold });
                 onRequireKyc();
                 setWithdrawOpen(false);
                 return;
@@ -192,7 +261,7 @@ const WalletView: React.FC<WalletViewProps> = ({ isKycVerified, onRequireKyc, ap
 
             const asset = type === 'crypto' ? selectedAsset : 'USD';
 
-            // Smart Approval Check
+            // Process withdrawal
             if (withdrawAmount > appConfig.manualApprovalThreshold) {
                 onAddTransaction({
                     userId: user.userId,
@@ -200,18 +269,9 @@ const WalletView: React.FC<WalletViewProps> = ({ isKycVerified, onRequireKyc, ap
                     amount: withdrawAmount,
                     asset: asset,
                 });
-                simulateSendEmail('transactionPending', { amount: withdrawAmount, asset: asset, type: 'Withdrawal' });
                 setStatus({ type: 'pending', message: `Your withdrawal of ${withdrawAmount} ${asset} is pending approval.` });
             } else {
-                // Auto-approve
-                if (Math.random() > 0.1) {
-                    const txId = crypto.randomUUID();
-                    setStatus({ type: 'success', message: `Successfully withdrew ${amount} ${asset}.` });
-                    simulateSendEmail('withdrawalSuccess', { amount: withdrawAmount, asset: asset, address: address || 'Bank Account', txId });
-                } else {
-                    setStatus({ type: 'error', message: 'Withdrawal failed. Please try again.' });
-                    simulateSendEmail('withdrawalFailed', { amount: withdrawAmount, asset: asset, reason: 'Insufficient funds or network error' });
-                }
+                setStatus({ type: 'success', message: `Withdrawal of ${amount} ${asset} initiated. Check your wallet for confirmation.` });
             }
             setIsProcessing(false);
         };
@@ -222,7 +282,7 @@ const WalletView: React.FC<WalletViewProps> = ({ isKycVerified, onRequireKyc, ap
                 {type === 'crypto' && (
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <Select label="Asset" value={selectedAsset} onChange={e => setSelectedAsset(e.target.value)}>
-                            {MOCK_ASSETS.map(asset => <option key={asset.symbol} value={asset.symbol}>{asset.name} ({asset.symbol}) - {asset.balance}</option>)}
+                            {availableAssets.map(asset => <option key={asset.symbol} value={asset.symbol}>{asset.name} ({asset.symbol}) - {asset.balance}</option>)}
                         </Select>
                         <Input label="Wallet Address" placeholder="Enter destination wallet address" value={address} onChange={(e) => setAddress(e.target.value)} disabled={isProcessing} />
                         <Input label="Amount" placeholder="0.00" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} disabled={isProcessing} />
@@ -293,92 +353,163 @@ const WalletView: React.FC<WalletViewProps> = ({ isKycVerified, onRequireKyc, ap
                         <WalletConnect />
                     </div>
                     
-                    {/* Balance Card */}
-                    <Card className="mb-6 bg-gradient-to-br from-blue-600 to-purple-700 text-white border-0">
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <p className="text-blue-100 text-sm">
-                                    {isConnected ? `${CHAIN_NAMES[chainId] || 'Network'} Balance` : 'Total Balance'}
-                                </p>
-                                <p className="text-4xl font-bold">
-                                    {isConnected && nativeBalance 
-                                        ? `${formatBalance(nativeBalance.value, nativeBalance.decimals)} ${nativeBalance.symbol}`
-                                        : '0.0000 ETH'
-                                    }
-                                </p>
-                                {isConnected ? (
-                                    <p className="text-blue-200 text-sm mt-1">
-                                        Connected to Web3 Wallet
-                                    </p>
-                                ) : (
-                                    <p className="text-blue-200 text-sm mt-1">
-                                        Connect wallet to view balance
-                                    </p>
-                                )}
-                            </div>
-                            {isConnected && (
-                                <div className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm font-medium">
-                                    ● Live
-                                </div>
-                            )}
-                        </div>
-                    </Card>
-                    
-                    <h2 className="text-xl font-bold text-white mb-4">Assets</h2>
-                    <Card padding="p-0" className="bg-gray-800 border-gray-700">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-gray-400 uppercase bg-gray-800/50">
-                                    <tr>
-                                        <th className="px-6 py-3">Asset</th>
-                                        <th className="px-6 py-3 text-right">Balance</th>
-                                        <th className="px-6 py-3 text-right">Value (USD)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {isConnected && nativeBalance ? (
-                                        <tr className="border-b border-gray-700 hover:bg-gray-700/50">
-                                            <td className="px-6 py-4 font-medium text-white">
-                                                {nativeBalance.symbol} <span className="text-gray-400">Native</span>
-                                            </td>
-                                            <td className="px-6 py-4 text-right font-mono text-gray-300">
-                                                {formatBalance(nativeBalance.value, nativeBalance.decimals, 6)}
-                                            </td>
-                                            <td className="px-6 py-4 text-right font-mono text-gray-300">-</td>
-                                        </tr>
+                    {/* Binance Balance Card */}
+                    {binanceConfigured && (
+                        <Card className="mb-6 bg-gradient-to-br from-yellow-600 to-orange-700 text-white border-0">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <p className="text-yellow-100 text-sm">Binance Balance</p>
+                                    {isBinanceLoading ? (
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <Loader2 className="w-6 h-6 animate-spin" />
+                                            <span>Loading...</span>
+                                        </div>
                                     ) : (
                                         <>
-                                            <tr className="border-b border-gray-700 hover:bg-gray-700/50">
-                                                <td className="px-6 py-4 font-medium text-white">Ethereum <span className="text-gray-400">ETH</span></td>
-                                                <td className="px-6 py-4 text-right font-mono text-gray-300">0.000000</td>
-                                                <td className="px-6 py-4 text-right font-mono text-gray-300">$0.00</td>
-                                            </tr>
-                                            <tr className="border-b border-gray-700 hover:bg-gray-700/50">
-                                                <td className="px-6 py-4 font-medium text-white">Bitcoin <span className="text-gray-400">BTC</span></td>
-                                                <td className="px-6 py-4 text-right font-mono text-gray-300">0.00000000</td>
-                                                <td className="px-6 py-4 text-right font-mono text-gray-300">$0.00</td>
-                                            </tr>
-                                            <tr className="border-b border-gray-700 hover:bg-gray-700/50">
-                                                <td className="px-6 py-4 font-medium text-white">USDT <span className="text-gray-400">USDT</span></td>
-                                                <td className="px-6 py-4 text-right font-mono text-gray-300">0.000000</td>
-                                                <td className="px-6 py-4 text-right font-mono text-gray-300">$0.00</td>
-                                            </tr>
-                                            <tr className="border-b border-gray-700 last:border-b-0 hover:bg-gray-700/50">
-                                                <td className="px-6 py-4 font-medium text-white">USDC <span className="text-gray-400">USDC</span></td>
-                                                <td className="px-6 py-4 text-right font-mono text-gray-300">0.000000</td>
-                                                <td className="px-6 py-4 text-right font-mono text-gray-300">$0.00</td>
-                                            </tr>
+                                            <p className="text-4xl font-bold">
+                                                {binanceTotalUSDT.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDT
+                                            </p>
+                                            <p className="text-yellow-200 text-sm mt-1">
+                                                {binanceBalances.length} assets in your Binance account
+                                            </p>
                                         </>
                                     )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </Card>
+                                </div>
+                                <div className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                                    <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                                    LIVE
+                                </div>
+                            </div>
+                        </Card>
+                    )}
                     
-                    {!isConnected && (
-                        <p className="text-center text-gray-500 text-sm mt-4">
-                            Connect your wallet above to see your real crypto balances
-                        </p>
+                    {/* Binance Assets */}
+                    {binanceConfigured && binanceBalances.length > 0 && (
+                        <>
+                            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                                Binance Assets
+                                <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">LIVE</span>
+                            </h2>
+                            <Card padding="p-0" className="bg-gray-800 border-gray-700 mb-6">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm text-left">
+                                        <thead className="text-xs text-gray-400 uppercase bg-gray-800/50">
+                                            <tr>
+                                                <th className="px-6 py-3">Asset</th>
+                                                <th className="px-6 py-3 text-right">Available</th>
+                                                <th className="px-6 py-3 text-right">Locked</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {binanceBalances.map((balance) => (
+                                                <tr key={balance.asset} className="border-b border-gray-700 last:border-b-0 hover:bg-gray-700/50">
+                                                    <td className="px-6 py-4 font-medium text-white">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="w-8 h-8 bg-yellow-500/20 rounded-full flex items-center justify-center text-yellow-400 font-bold text-xs">
+                                                                {balance.asset.slice(0, 2)}
+                                                            </span>
+                                                            <div>{balance.asset}</div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right font-mono text-gray-300">
+                                                        {parseFloat(balance.free).toLocaleString('en-US', {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 8,
+                                                        })}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right font-mono text-gray-500">
+                                                        {parseFloat(balance.locked) > 0 
+                                                            ? parseFloat(balance.locked).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 8 })
+                                                            : '-'
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </Card>
+                        </>
+                    )}
+                    
+                    {/* Web3 Wallet Assets */}
+                    {isConnected && (
+                        <>
+                            <h2 className="text-xl font-bold text-white mb-4">Web3 Wallet Assets</h2>
+                            <Card padding="p-0" className="bg-gray-800 border-gray-700 mb-6">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm text-left">
+                                        <thead className="text-xs text-gray-400 uppercase bg-gray-800/50">
+                                            <tr>
+                                                <th className="px-6 py-3">Asset</th>
+                                                <th className="px-6 py-3 text-right">Balance</th>
+                                                <th className="px-6 py-3 text-right">Network</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {/* Native Token */}
+                                            {nativeBalance && (
+                                                <tr className="border-b border-gray-700 hover:bg-gray-700/50">
+                                                    <td className="px-6 py-4 font-medium text-white">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center text-blue-400 font-bold text-xs">
+                                                                {nativeBalance.symbol.slice(0, 2)}
+                                                            </span>
+                                                            {nativeBalance.symbol}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right font-mono text-gray-300">
+                                                        {formatBalance(nativeBalance.value, nativeBalance.decimals, 6)}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right text-gray-400 text-xs">
+                                                        {CHAIN_NAMES[chainId] || 'Unknown'}
+                                                    </td>
+                                                </tr>
+                                            )}
+                                            {/* Token Balances */}
+                                            {tokenBalances.map((token, idx) => token && (
+                                                <tr key={idx} className="border-b border-gray-700 last:border-b-0 hover:bg-gray-700/50">
+                                                    <td className="px-6 py-4 font-medium text-white">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center text-green-400 font-bold text-xs">
+                                                                {token.symbol.slice(0, 2)}
+                                                            </span>
+                                                            {token.symbol}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right font-mono text-gray-300">
+                                                        {formatBalance(token.value, token.decimals, 6)}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right text-gray-400 text-xs">
+                                                        {CHAIN_NAMES[chainId] || 'Unknown'}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </Card>
+                        </>
+                    )}
+                    
+                    {/* No wallets connected message */}
+                    {!binanceConfigured && !isConnected && (
+                        <Card className="bg-gray-800 border-gray-700">
+                            <div className="text-center py-8">
+                                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-lg font-semibold text-white mb-2">No Wallet Connected</h3>
+                                <p className="text-gray-400 text-sm mb-4">
+                                    Connect your Web3 wallet or configure Coinbase API to view your balances
+                                </p>
+                                <p className="text-gray-500 text-xs">
+                                    Set VITE_COINBASE_API_KEY and VITE_COINBASE_API_SECRET for Coinbase integration
+                                </p>
+                            </div>
+                        </Card>
                     )}
                 </div>
             </main>
