@@ -7,7 +7,6 @@ import MarketInfo from './MarketInfo';
 import PriceAlerts from '../alerts/PriceAlerts';
 import OpenOrders from '../orders/OpenOrders';
 import BinanceTrade from '../trading/BinanceTrade';
-import { fetchLivePrice } from '../../services/geminiService';
 import { isConfigured as isBinanceConfigured } from '../../services/binanceService';
 
 const FALLBACK_PRICES: Record<string, number> = {
@@ -35,19 +34,18 @@ const TradingView: React.FC<TradingViewProps> = ({ market, appConfig }) => {
   }, []);
 
   useEffect(() => {
-    const getPrice = async () => {
+    const getPrice = () => {
       setInitialPrice(0); // Reset to show loading state
       setCurrentPrice(0);
       setOrderPrice('');
 
-      let newInitialPrice: number | null = 0;
+      let newInitialPrice: number = 0;
 
       if (appConfig.rateMode === 'manual') {
         newInitialPrice = appConfig.manualRates[market.base] || FALLBACK_PRICES[market.base] || 0;
       } else {
-        // Live mode
-        const livePrice = await fetchLivePrice(market.base, market.quote);
-        newInitialPrice = livePrice || FALLBACK_PRICES[market.base] || 0;
+        // Use fallback prices (live price API removed)
+        newInitialPrice = FALLBACK_PRICES[market.base] || 0;
       }
 
       setInitialPrice(newInitialPrice);

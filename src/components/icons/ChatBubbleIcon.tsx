@@ -1,9 +1,26 @@
 import React from 'react';
 
-const ChatBubbleIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || 'w-6 h-6'}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193l-3.722.28c-1.247.094-2.267.66-3.097 1.402l-2.015 2.015a1.125 1.125 0 0 1-1.591 0l-2.015-2.015c-.83-.742-1.85-1.308-3.097-1.402l-3.722-.28A2.122 2.122 0 0 1 3 14.894V10.608c0-.97.616-1.813 1.5-2.097L6.6 8.243a1.125 1.125 0 0 1 .843.044l1.963.982a1.125 1.125 0 0 0 1.094 0l1.963-.982a1.125 1.125 0 0 1 .843-.044l2.1-1.05Z" />
+interface ChatBubbleIconProps {
+  className?: string;
+}
+
+const ChatBubbleIcon: React.FC<ChatBubbleIconProps> = ({ className = 'w-6 h-6' }) => {
+  return (
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      fill="none" 
+      viewBox="0 0 24 24" 
+      strokeWidth={1.5} 
+      stroke="currentColor" 
+      className={className}
+    >
+      <path 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" 
+      />
     </svg>
-);
+  );
+};
 
 export default ChatBubbleIcon;

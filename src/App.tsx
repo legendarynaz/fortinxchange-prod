@@ -147,13 +147,13 @@ const AppContent: React.FC<{
         onTabChange={(tab) => handleNavigate(tab as View)}
       />
 
-      {/* Chat Button */}
+      {/* Support Chat Button */}
       <div className="fixed bottom-20 right-4 z-50">
         {!isChatOpen && (
           <button
             onClick={() => setIsChatOpen(true)}
             className="text-white rounded-full p-4 shadow-lg transition-transform hover:scale-110 focus:outline-none bg-accent hover:bg-accent/90"
-            aria-label="Open Chat"
+            aria-label="Open Support Chat"
           >
             <ChatBubbleIcon className="w-6 h-6" />
           </button>
