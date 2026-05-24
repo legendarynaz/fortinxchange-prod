@@ -3,6 +3,7 @@ import { Eye, EyeOff, Fingerprint, AlertCircle, Clock } from 'lucide-react';
 import { useWallet } from '../../context/WalletContext';
 import { formatAddress } from '../../services/walletService';
 import { isLockedOut, recordFailedAttempt, clearAttempts, getLockoutTimeRemaining } from '../../services/securityService';
+import { getBiometricStatus, authenticateWithBiometric, type BiometricStatus } from '../../services/biometricService';
 import Logo from '../common/Logo';
 
 interface UnlockScreenProps {
@@ -18,6 +19,8 @@ const UnlockScreen: React.FC<UnlockScreenProps> = ({ onUnlock, onReset }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [lockoutRemaining, setLockoutRemaining] = useState(0);
+  const [biometricStatus, setBiometricStatus] = useState<BiometricStatus | null>(null);
+  const [isBiometricLoading, setIsBiometricLoading] = useState(false);
 
   const userId = activeAccount?.address || 'default';
 
@@ -31,6 +34,49 @@ const UnlockScreen: React.FC<UnlockScreenProps> = ({ onUnlock, onReset }) => {
     const interval = setInterval(checkLockout, 1000);
     return () => clearInterval(interval);
   }, [userId]);
+
+  useEffect(() => {
+    // Check biometric availability on mount
+    const checkBiometric = async () => {
+      const status = await getBiometricStatus();
+      setBiometricStatus(status);
+      
+      // Auto-prompt biometric if enabled and available
+      if (status.isEnabled && status.isAvailable) {
+        handleBiometricUnlock();
+      }
+    };
+    checkBiometric();
+  }, []);
+
+  const handleBiometricUnlock = async () => {
+    if (isBiometricLoading) return;
+    
+    setIsBiometricLoading(true);
+    setError('');
+    
+    try {
+      // authenticateWithBiometric returns the stored password on success, null on failure
+      const storedPassword = await authenticateWithBiometric();
+      if (storedPassword) {
+        // Biometric auth succeeded - use the stored password to unlock
+        const unlockSuccess = await unlock(storedPassword);
+        if (unlockSuccess) {
+          clearAttempts(userId);
+          onUnlock();
+        } else {
+          setError('Biometric verified but wallet unlock failed. Please use your password.');
+        }
+      } else {
+        setError('Biometric authentication failed. Please use your password.');
+      }
+    } catch (err) {
+      console.error('Biometric unlock error:', err);
+      setError('Biometric authentication unavailable. Please use your password.');
+    }
+    
+    setIsBiometricLoading(false);
+  };
 
   const formatLockoutTime = (ms: number) => {
     const hours = Math.floor(ms / (60 * 60 * 1000));
@@ -185,14 +231,30 @@ const UnlockScreen: React.FC<UnlockScreenProps> = ({ onUnlock, onReset }) => {
             </button>
           )}
 
-          {/* Biometric button placeholder */}
-          <button
-            className="w-full mt-4 text-gray-500 hover:text-gray-400 font-medium py-3 transition-colors flex items-center justify-center gap-2"
-            disabled
-          >
-            <Fingerprint className="w-5 h-5" />
-            Use Biometrics
-          </button>
+          {/* Biometric button - only show if available */}
+          {biometricStatus?.isAvailable && (
+            <button
+              onClick={handleBiometricUnlock}
+              disabled={isBiometricLoading || lockoutRemaining > 0}
+              className={`w-full mt-4 font-medium py-3 transition-colors flex items-center justify-center gap-2 rounded-xl ${
+                biometricStatus.isEnabled
+                  ? 'bg-[#1A1A2E] text-white hover:bg-[#252542]'
+                  : 'text-gray-500 hover:text-gray-400'
+              } disabled:opacity-50`}
+            >
+              {isBiometricLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin" />
+                  Authenticating...
+                </>
+              ) : (
+                <>
+                  <Fingerprint className="w-5 h-5" />
+                  Use {biometricStatus.biometryName || 'Biometrics'}
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
 

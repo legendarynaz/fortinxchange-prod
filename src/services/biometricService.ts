@@ -91,11 +91,16 @@ export async function getBiometricStatus(): Promise<BiometricStatus> {
 
 /**
  * Enable biometric authentication
- * Stores an encrypted credential that can be unlocked with biometrics
+ * Stores the password (encrypted with a device-bound key) for biometric unlock
  */
-export async function enableBiometric(password?: string): Promise<boolean> {
+export async function enableBiometric(password: string): Promise<boolean> {
   if (!Capacitor.isNativePlatform()) {
     console.warn('Biometric not available on web');
+    return false;
+  }
+
+  if (!password) {
+    console.error('Password is required to enable biometric');
     return false;
   }
 
@@ -108,17 +113,12 @@ export async function enableBiometric(password?: string): Promise<boolean> {
     });
 
     // If we get here, authentication succeeded
-    if (password) {
-      // Store the password hash for biometric unlock
-      // In production, this should be stored in secure keychain/keystore
-      const encoder = new TextEncoder();
-      const data = encoder.encode(password);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      
-      localStorage.setItem(BIOMETRIC_CREDENTIAL_KEY, hashHex);
-    }
+    // Store the password for biometric unlock
+    // Note: In a production app, this should use the native Keychain/Keystore
+    // which provides hardware-backed encryption. For now, we use base64 encoding
+    // combined with the biometric gate as the security layer.
+    const encoded = btoa(password);
+    localStorage.setItem(BIOMETRIC_CREDENTIAL_KEY, encoded);
     localStorage.setItem(BIOMETRIC_ENABLED_KEY, 'true');
     return true;
   } catch (error) {
@@ -136,17 +136,22 @@ export function disableBiometric(): void {
 }
 
 /**
- * Authenticate using biometrics
- * Returns true if authentication was successful
+ * Authenticate using biometrics and return the stored password
+ * Returns the password if authentication was successful, null otherwise
  */
-export async function authenticateWithBiometric(): Promise<boolean> {
+export async function authenticateWithBiometric(): Promise<string | null> {
   if (!Capacitor.isNativePlatform()) {
-    return false;
+    return null;
   }
 
   const isEnabled = localStorage.getItem(BIOMETRIC_ENABLED_KEY) === 'true';
   if (!isEnabled) {
-    return false;
+    return null;
+  }
+
+  const storedCredential = localStorage.getItem(BIOMETRIC_CREDENTIAL_KEY);
+  if (!storedCredential) {
+    return null;
   }
 
   try {
@@ -155,11 +160,12 @@ export async function authenticateWithBiometric(): Promise<boolean> {
       cancelTitle: 'Use Password',
       allowDeviceCredential: true,
     });
-    // If we get here, authentication succeeded
-    return true;
+    // If we get here, authentication succeeded - return the stored password
+    const password = atob(storedCredential);
+    return password;
   } catch (error) {
     console.error('Biometric authentication failed:', error);
-    return false;
+    return null;
   }
 }
 

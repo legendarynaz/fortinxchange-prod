@@ -13,7 +13,8 @@ import {
   updateNotificationSettings,
   type EmailSettings 
 } from '../../services/emailSettingsService';
-import { Usb, PlugZap, Mail, CheckCircle, AlertCircle, Loader2, X, Copy, Check, Lock, LogOut, Shield, Key, Fingerprint, FileText, ExternalLink } from 'lucide-react';
+import { Usb, PlugZap, Mail, CheckCircle, AlertCircle, Loader2, X, Copy, Check, Lock, LogOut, Shield, Key, Fingerprint, FileText, ExternalLink, Eye, EyeOff } from 'lucide-react';
+import { getBiometricStatus, enableBiometric, disableBiometric, type BiometricStatus } from '../../services/biometricService';
 import { Link } from 'react-router-dom';
 
 interface SettingsViewProps {
@@ -43,14 +44,28 @@ const SettingsView: React.FC<SettingsViewProps> = ({ walletAddress }) => {
   
   // Security state
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [authMethod, setAuthMethod] = useState<'password' | 'biometric'>(
-    localStorage.getItem('4ortinx_auth_method') as 'password' | 'biometric' || 'password'
-  );
+  const [authMethod, setAuthMethod] = useState<'password' | 'biometric'>('password');
+  const [biometricStatus, setBiometricStatus] = useState<BiometricStatus | null>(null);
+  const [showBiometricSetup, setShowBiometricSetup] = useState(false);
+  const [biometricPassword, setBiometricPassword] = useState('');
+  const [showBiometricPassword, setShowBiometricPassword] = useState(false);
+  const [biometricError, setBiometricError] = useState('');
+  const [isEnablingBiometric, setIsEnablingBiometric] = useState(false);
 
   useEffect(() => {
     setLedgerAcc(loadHardwareAccount('ledger'));
     setTrezorAcc(loadHardwareAccount('trezor'));
     setEmailSettings(getEmailSettings());
+    
+    // Check biometric status
+    const checkBiometric = async () => {
+      const status = await getBiometricStatus();
+      setBiometricStatus(status);
+      if (status.isEnabled) {
+        setAuthMethod('biometric');
+      }
+    };
+    checkBiometric();
   }, []);
 
   const shorten = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -180,9 +195,56 @@ const SettingsView: React.FC<SettingsViewProps> = ({ walletAddress }) => {
     navigate('/');
   };
 
-  const handleAuthMethodChange = (method: 'password' | 'biometric') => {
-    setAuthMethod(method);
-    localStorage.setItem('4ortinx_auth_method', method);
+  const handleAuthMethodChange = async (method: 'password' | 'biometric') => {
+    if (method === 'biometric') {
+      // Check if biometrics are available
+      if (!biometricStatus?.isAvailable) {
+        setBiometricError('Biometric authentication is not available on this device');
+        return;
+      }
+      // Show password prompt to enable biometric
+      setShowBiometricSetup(true);
+      setBiometricError('');
+      setBiometricPassword('');
+    } else {
+      // Disable biometric
+      disableBiometric();
+      setAuthMethod('password');
+      const status = await getBiometricStatus();
+      setBiometricStatus(status);
+    }
+  };
+
+  const handleEnableBiometric = async () => {
+    if (!biometricPassword.trim()) {
+      setBiometricError('Please enter your wallet password');
+      return;
+    }
+
+    setIsEnablingBiometric(true);
+    setBiometricError('');
+
+    try {
+      // Enable biometric with the password
+      // The enableBiometric function will verify via native biometric prompt
+      // and store the password for later use
+      const success = await enableBiometric(biometricPassword);
+      
+      if (success) {
+        setAuthMethod('biometric');
+        setShowBiometricSetup(false);
+        setBiometricPassword('');
+        const status = await getBiometricStatus();
+        setBiometricStatus(status);
+      } else {
+        setBiometricError('Failed to enable biometric. Please try again.');
+      }
+    } catch (err) {
+      console.error('Biometric enable error:', err);
+      setBiometricError('Biometric setup failed. Please try again.');
+    }
+
+    setIsEnablingBiometric(false);
   };
 
   return (
@@ -503,6 +565,75 @@ const SettingsView: React.FC<SettingsViewProps> = ({ walletAddress }) => {
           {/* Two-Factor Authentication */}
           <TwoFactorSetup userEmail={emailSettings.email || walletAddress} />
         </section>
+
+        {/* Biometric Setup Modal */}
+        {showBiometricSetup && (
+          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+            <div className="bg-card-bg rounded-2xl p-6 max-w-md w-full border border-gray-700">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+                  <Fingerprint className="w-6 h-6 text-accent" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Enable Biometric Unlock</h3>
+                  <p className="text-gray-400 text-sm">Use {biometricStatus?.biometryName || 'biometrics'} to unlock your wallet</p>
+                </div>
+              </div>
+              
+              <p className="text-gray-400 text-sm mb-4">
+                Enter your wallet password to enable biometric unlock. Your password will be securely stored and only accessible via biometric authentication.
+              </p>
+
+              <div className="relative mb-4">
+                <input
+                  type={showBiometricPassword ? 'text' : 'password'}
+                  value={biometricPassword}
+                  onChange={(e) => { setBiometricPassword(e.target.value); setBiometricError(''); }}
+                  placeholder="Enter your wallet password"
+                  className="w-full bg-app-bg border border-gray-600 rounded-xl px-4 py-3 pr-12 text-white placeholder:text-gray-500 focus:outline-none focus:border-accent"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowBiometricPassword(!showBiometricPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 p-1"
+                >
+                  {showBiometricPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+
+              {biometricError && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 mb-4 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                  <p className="text-red-400 text-sm">{biometricError}</p>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowBiometricSetup(false);
+                    setBiometricPassword('');
+                    setBiometricError('');
+                  }}
+                  className="flex-1 px-4 py-3 border border-gray-600 rounded-xl text-gray-300 hover:bg-card-hover transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleEnableBiometric}
+                  disabled={isEnablingBiometric || !biometricPassword.trim()}
+                  className="flex-1 px-4 py-3 bg-accent text-black font-semibold rounded-xl hover:bg-accent/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isEnablingBiometric ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Enabling...</>
+                  ) : (
+                    'Enable'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Logout Confirmation Modal */}
         {showLogoutConfirm && (
