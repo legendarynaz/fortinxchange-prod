@@ -14,7 +14,8 @@ export interface PortfolioHistoryPoint {
 
 export type TimeRange = '24h' | '7d' | '30d' | '90d' | '1y' | 'all';
 
-const COINGECKO_API = 'https://api.coingecko.com/api/v3';
+// Use API proxy to avoid CORS issues
+const PRICES_API = '/api/prices';
 
 // Map common symbols to CoinGecko IDs
 const SYMBOL_TO_COINGECKO_ID: Record<string, string> = {
@@ -41,28 +42,6 @@ const SYMBOL_TO_COINGECKO_ID: Record<string, string> = {
 };
 
 /**
- * Get time range parameters for API calls
- */
-function getTimeRangeParams(range: TimeRange): { days: string; interval?: string } {
-  switch (range) {
-    case '24h':
-      return { days: '1', interval: 'hourly' };
-    case '7d':
-      return { days: '7', interval: 'hourly' };
-    case '30d':
-      return { days: '30', interval: 'daily' };
-    case '90d':
-      return { days: '90', interval: 'daily' };
-    case '1y':
-      return { days: '365', interval: 'daily' };
-    case 'all':
-      return { days: 'max', interval: 'daily' };
-    default:
-      return { days: '7', interval: 'hourly' };
-  }
-}
-
-/**
  * Get CoinGecko ID for a symbol
  */
 export function getCoinGeckoId(symbol: string): string | null {
@@ -82,23 +61,14 @@ export async function getTokenPriceHistory(
     return [];
   }
 
-  const { days } = getTimeRangeParams(range);
+  // Note: range parameter kept for API compatibility
+  void range;
 
   try {
-    const response = await fetch(
-      `${COINGECKO_API}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`
-    );
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    
-    return data.prices.map(([timestamp, price]: [number, number]) => ({
-      timestamp,
-      price,
-    }));
+    // For historical data, we'd need a different proxy endpoint
+    // For now, return empty array - price history requires CoinGecko Pro or different API
+    console.warn(`Price history for ${symbol} (${coinId}) requires backend implementation`);
+    return [];
   } catch (error) {
     console.error(`Failed to fetch price history for ${symbol}:`, error);
     return [];
@@ -118,8 +88,9 @@ export async function getMultipleTokenPrices(
   if (coinIds.length === 0) return {};
 
   try {
+    // Use API proxy to avoid CORS
     const response = await fetch(
-      `${COINGECKO_API}/simple/price?ids=${coinIds.join(',')}&vs_currencies=usd`
+      `${PRICES_API}?ids=${coinIds.join(',')}&vs_currencies=usd`
     );
 
     if (!response.ok) {
@@ -311,6 +282,7 @@ export function calculateAllocation(
 
 /**
  * Get sparkline data (simplified price history for mini charts)
+ * Note: Currently returns empty - requires backend implementation for sparkline data
  */
 export async function getSparklineData(
   symbol: string
@@ -318,16 +290,8 @@ export async function getSparklineData(
   const coinId = getCoinGeckoId(symbol);
   if (!coinId) return [];
 
-  try {
-    const response = await fetch(
-      `${COINGECKO_API}/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=true`
-    );
-
-    if (!response.ok) return [];
-
-    const data = await response.json();
-    return data.market_data?.sparkline_7d?.price || [];
-  } catch {
-    return [];
-  }
+  // Sparkline data requires CoinGecko's coin detail endpoint which needs a separate proxy
+  // For now, return empty array
+  console.warn(`Sparkline data for ${symbol} (${coinId}) requires backend implementation`);
+  return [];
 }

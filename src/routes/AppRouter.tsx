@@ -3,6 +3,7 @@
 
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import Footer from '../components/common/Footer';
 import { useAuth } from '../context/AuthContext';
 
 // Lazy load views for code splitting
@@ -64,10 +65,13 @@ const PublicRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 // Main app layout wrapper
 const AppLayout: React.FC = () => {
   return (
-    <div className="min-h-screen bg-slate-900">
-      <Suspense fallback={<LoadingFallback />}>
-        <Outlet />
-      </Suspense>
+    <div className="min-h-screen bg-slate-900 flex flex-col">
+      <div className="flex-1">
+        <Suspense fallback={<LoadingFallback />}>
+          <Outlet />
+        </Suspense>
+      </div>
+      <Footer />
     </div>
   );
 };
@@ -91,7 +95,7 @@ export const AppRouter: React.FC = () => {
               <Route path="/swap" element={<SwapScreen />} />
               <Route path="/earn" element={<EarnScreen />} />
               <Route path="/history" element={<TransactionHistory transactions={[]} />} />
-              <Route path="/settings" element={<SettingsView userEmail="" />} />
+              <Route path="/settings" element={<SettingsView walletAddress="" />} />
             </Route>
           </Route>
           

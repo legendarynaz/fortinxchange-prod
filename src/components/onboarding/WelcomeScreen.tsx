@@ -1,7 +1,6 @@
 import React from 'react';
-import { Shield, Plus, Download } from 'lucide-react';
+import { Shield, Plus, Download, Layers, Layout } from 'lucide-react';
 import Logo from '../common/Logo';
-import Footer from '../common/Footer';
 
 interface WelcomeScreenProps {
   onCreateWallet: () => void;
@@ -10,16 +9,12 @@ interface WelcomeScreenProps {
 
 const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreateWallet, onImportWallet }) => {
   return (
-    <div className="min-h-screen bg-[#0D1117] flex flex-col">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-[#F0B90B]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-40 right-10 w-48 h-48 bg-[#F0B90B]/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl" />
-      </div>
-
+    <div 
+      className="min-h-screen flex flex-col"
+      style={{ backgroundColor: '#0D1117' }}
+    >
       {/* Content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
+      <div className="flex-1 flex flex-col items-center justify-center px-6">
         {/* Logo */}
         <div className="mb-6">
           <Logo size="xl" />
@@ -27,15 +22,22 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreateWallet, onImportW
 
         {/* Title */}
         <h1 className="text-3xl font-bold text-white mb-2">4ortin-X</h1>
-        <p className="text-[#F0B90B] text-sm font-medium tracking-widest mb-2">WALLET</p>
-        <p className="text-gray-400 text-center mb-12 max-w-xs">
+        <p className="text-sm font-medium tracking-widest mb-2" style={{ color: '#F0B90B' }}>WALLET</p>
+        <p className="text-gray-400 text-center mb-10 max-w-xs">
           Your secure gateway to Web3. Store, swap, and explore decentralized apps.
         </p>
 
         {/* Features */}
-        <div className="w-full max-w-sm space-y-3 mb-12">
-          <div className="flex items-center gap-3 bg-[#1A1A2E]/50 rounded-xl p-4">
-            <div className="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center">
+        <div className="w-full max-w-sm space-y-3 mb-10">
+          {/* Self-Custody */}
+          <div 
+            className="flex items-center gap-3 rounded-xl p-4"
+            style={{ backgroundColor: 'rgba(26, 26, 46, 0.7)' }}
+          >
+            <div 
+              className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: 'rgba(34, 197, 94, 0.15)' }}
+            >
               <Shield className="w-5 h-5 text-green-500" />
             </div>
             <div>
@@ -43,23 +45,34 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreateWallet, onImportW
               <p className="text-gray-500 text-xs">You control your keys</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 bg-[#1A1A2E]/50 rounded-xl p-4">
-            <div className="w-10 h-10 bg-blue-500/10 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-              </svg>
+
+          {/* Multi-Chain */}
+          <div 
+            className="flex items-center gap-3 rounded-xl p-4"
+            style={{ backgroundColor: 'rgba(26, 26, 46, 0.7)' }}
+          >
+            <div 
+              className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: 'rgba(59, 130, 246, 0.15)' }}
+            >
+              <Layers className="w-5 h-5 text-blue-500" />
             </div>
             <div>
               <p className="text-white font-medium text-sm">Multi-Chain</p>
               <p className="text-gray-500 text-xs">Ethereum, BSC, Polygon & more</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 bg-[#1A1A2E]/50 rounded-xl p-4">
-            <div className="w-10 h-10 bg-purple-500/10 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                <path d="M3 9h18M9 21V9"/>
-              </svg>
+
+          {/* DApp Browser */}
+          <div 
+            className="flex items-center gap-3 rounded-xl p-4"
+            style={{ backgroundColor: 'rgba(26, 26, 46, 0.7)' }}
+          >
+            <div 
+              className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: 'rgba(168, 85, 247, 0.15)' }}
+            >
+              <Layout className="w-5 h-5 text-purple-500" />
             </div>
             <div>
               <p className="text-white font-medium text-sm">DApp Browser</p>
@@ -73,22 +86,21 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onCreateWallet, onImportW
       <div className="px-6 pb-6 space-y-3">
         <button
           onClick={onCreateWallet}
-          className="w-full bg-[#F0B90B] hover:bg-[#F0B90B]/90 text-black font-semibold py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
+          className="w-full text-black font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
+          style={{ backgroundColor: '#F0B90B' }}
         >
           <Plus className="w-5 h-5" />
           Create New Wallet
         </button>
         <button
           onClick={onImportWallet}
-          className="w-full bg-[#1A1A2E] hover:bg-[#252542] text-white font-semibold py-4 rounded-xl transition-colors flex items-center justify-center gap-2 border border-gray-700"
+          className="w-full text-white font-semibold py-4 rounded-xl transition-all flex items-center justify-center gap-2 border border-gray-600 active:scale-95"
+          style={{ backgroundColor: '#1A1A2E' }}
         >
           <Download className="w-5 h-5" />
           Import Existing Wallet
         </button>
       </div>
-
-      {/* Footer with legal links */}
-      <Footer className="pb-6" />
     </div>
   );
 };

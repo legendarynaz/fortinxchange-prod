@@ -10,7 +10,7 @@ export const config = createConfig({
   connectors: [
     injected(), // MetaMask and other injected wallets
     walletConnect({ projectId }),
-    coinbaseWallet({ appName: '4ortinXchange' }),
+    coinbaseWallet({ appName: '4ortin-X:Crypto Bitcoin Wallet' }),
   ],
   transports: {
     [mainnet.id]: http(),

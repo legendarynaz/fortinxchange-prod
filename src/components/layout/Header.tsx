@@ -94,7 +94,7 @@ const Header: React.FC<HeaderProps> = ({ selectedMarket, onMarketChange, onNavig
 
         <div className="flex items-center space-x-2 sm:space-x-4">
           <LogoIcon />
-          <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tighter">4ortinXchange</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tighter">4ortin-X:Crypto Bitcoin Wallet</h1>
         </div>
         
         {currentView === 'trade' && (
@@ -198,7 +198,7 @@ const Header: React.FC<HeaderProps> = ({ selectedMarket, onMarketChange, onNavig
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-700">
           <div className="flex items-center space-x-2">
             <LogoIcon />
-            <span className="font-bold text-slate-900 dark:text-white">4ortinXchange</span>
+            <span className="font-bold text-slate-900 dark:text-white">4ortin-X:Crypto Bitcoin Wallet</span>
           </div>
           <button
             onClick={() => setMobileMenuOpen(false)}

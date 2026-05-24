@@ -11,7 +11,7 @@ const MaintenanceView: React.FC = () => {
       </div>
       <div className="flex justify-center items-center gap-3 mb-4">
         <LogoIcon />
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tighter">4ortinXchange</h1>
+        <h1 className="text-3xl font-bold text-slate-900 tracking-tighter">4ortin-X:Crypto Bitcoin Wallet</h1>
       </div>
       <h2 className="text-2xl font-bold text-slate-800 mt-4">Under Maintenance</h2>
       <p className="text-slate-600 mt-2 max-w-md">

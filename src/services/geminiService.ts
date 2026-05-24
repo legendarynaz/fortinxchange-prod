@@ -19,7 +19,7 @@ const initializeChat = () => {
         supportChat = ai.chats.create({
             model: 'gemini-2.5-flash',
             config: {
-                systemInstruction: "You are a friendly and helpful customer support agent for 4ortinXchange, a cryptocurrency exchange platform. Your goal is to assist users with their questions about trading, account security, deposits, withdrawals, and using the platform. Keep your answers concise and easy to understand. Do not provide financial advice.",
+                systemInstruction: "You are a friendly and helpful customer support agent for 4ortin-X:Crypto Bitcoin Wallet, a cryptocurrency exchange platform. Your goal is to assist users with their questions about trading, account security, deposits, withdrawals, and using the platform. Keep your answers concise and easy to understand. Do not provide financial advice.",
             }
         });
     }

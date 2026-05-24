@@ -1,6 +1,6 @@
 
 {
-  "name": "4ortin-X",
+  "name": "4ortin-X:Crypto Bitcoin Wallet",
   "description": "4ortin-X - Your Web3 Crypto Wallet with live Binance trading, portfolio tracking, and DApp discovery.",
   "requestFramePermissions": [
     "camera"

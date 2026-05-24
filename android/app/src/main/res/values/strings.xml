@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">4ortinXchange</string>
-    <string name="title_activity_main">4ortinXchange</string>
-    <string name="package_name">com.4ortinxchange.app</string>
-    <string name="custom_url_scheme">com.4ortinxchange.app</string>
+    <string name="app_name">4ortin-X:Crypto Bitcoin Wallet</string>
+    <string name="title_activity_main">4ortin-X:Crypto Bitcoin Wallet</string>
+    <string name="package_name">com.x4ortinx.app</string>
+    <string name="custom_url_scheme">com.x4ortinx.app</string>
 </resources>

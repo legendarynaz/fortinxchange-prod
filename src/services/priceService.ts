@@ -1,7 +1,8 @@
 // Price Service - Fetch token prices from CoinGecko
 import type { TokenBalance } from './balanceService';
 
-const COINGECKO_API = 'https://api.coingecko.com/api/v3';
+// Use API proxy to avoid CORS issues
+const PRICES_API = '/api/prices';
 
 // Map chain symbols to CoinGecko IDs
 const NATIVE_TOKEN_IDS: Record<string, string> = {
@@ -96,8 +97,9 @@ export const getTokenPrice = async (symbol: string): Promise<PriceData | null> =
   }
   
   try {
+    // Use API proxy to avoid CORS
     const response = await fetch(
-      `${COINGECKO_API}/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`
+      `${PRICES_API}?ids=${id}&vs_currencies=usd&include_24hr_change=true`
     );
     
     if (!response.ok) {
@@ -151,8 +153,9 @@ export const getTokenPrices = async (symbols: string[]): Promise<Record<string, 
   if (needsFetch.length === 0) return results;
   
   try {
+    // Use API proxy to avoid CORS
     const response = await fetch(
-      `${COINGECKO_API}/simple/price?ids=${needsFetch.join(',')}&vs_currencies=usd&include_24hr_change=true`
+      `${PRICES_API}?ids=${needsFetch.join(',')}&vs_currencies=usd&include_24hr_change=true`
     );
     
     if (!response.ok) {

@@ -7,13 +7,13 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // Email templates
 const templates: Record<string, { subject: string; html: (params: Record<string, string | number>) => string }> = {
   welcome: {
-    subject: 'Welcome to 4ortinXchange!',
+    subject: 'Welcome to 4ortin-X:Crypto Bitcoin Wallet!',
     html: (params) => `
-      <h1>Welcome to 4ortinXchange!</h1>
+      <h1>Welcome to 4ortin-X:Crypto Bitcoin Wallet!</h1>
       <p>Hello,</p>
-      <p>We're thrilled to have you join 4ortinXchange!</p>
+      <p>We're thrilled to have you join 4ortin-X:Crypto Bitcoin Wallet!</p>
       <p>Your account has been created successfully with email: <strong>${params.email}</strong></p>
-      <p>Happy trading,<br/>The 4ortinXchange Team</p>
+      <p>Happy trading,<br/>The 4ortin-X:Crypto Bitcoin Wallet Team</p>
     `
   },
   transactionPending: {
@@ -23,7 +23,7 @@ const templates: Record<string, { subject: string; html: (params: Record<string,
       <p>Hello,</p>
       <p>Your ${params.type} of <strong>${params.amount} ${params.asset}</strong> has been submitted and is pending manual approval.</p>
       <p>We will notify you once it has been processed.</p>
-      <p>Thanks,<br/>The 4ortinXchange Team</p>
+      <p>Thanks,<br/>The 4ortin-X:Crypto Bitcoin Wallet Team</p>
     `
   },
   depositSuccess: {
@@ -33,7 +33,7 @@ const templates: Record<string, { subject: string; html: (params: Record<string,
       <p>Hello,</p>
       <p>Your deposit of <strong>${params.amount} ${params.asset}</strong> has been successfully processed.</p>
       <p>Transaction ID: ${params.txId}</p>
-      <p>Thanks,<br/>The 4ortinXchange Team</p>
+      <p>Thanks,<br/>The 4ortin-X:Crypto Bitcoin Wallet Team</p>
     `
   },
   depositFailed: {
@@ -44,7 +44,7 @@ const templates: Record<string, { subject: string; html: (params: Record<string,
       <p>Your deposit of <strong>${params.amount} ${params.asset}</strong> has failed.</p>
       <p>Reason: ${params.reason}</p>
       <p>Please contact support if you need assistance.</p>
-      <p>Thanks,<br/>The 4ortinXchange Team</p>
+      <p>Thanks,<br/>The 4ortin-X:Crypto Bitcoin Wallet Team</p>
     `
   },
   withdrawalSuccess: {
@@ -55,7 +55,7 @@ const templates: Record<string, { subject: string; html: (params: Record<string,
       <p>Your withdrawal of <strong>${params.amount} ${params.asset}</strong> has been processed.</p>
       <p>Destination: ${params.address}</p>
       <p>Transaction ID: ${params.txId}</p>
-      <p>Thanks,<br/>The 4ortinXchange Team</p>
+      <p>Thanks,<br/>The 4ortin-X:Crypto Bitcoin Wallet Team</p>
     `
   },
   withdrawalFailed: {
@@ -66,7 +66,7 @@ const templates: Record<string, { subject: string; html: (params: Record<string,
       <p>Your withdrawal of <strong>${params.amount} ${params.asset}</strong> has failed.</p>
       <p>Reason: ${params.reason}</p>
       <p>Please contact support if you need assistance.</p>
-      <p>Thanks,<br/>The 4ortinXchange Team</p>
+      <p>Thanks,<br/>The 4ortin-X:Crypto Bitcoin Wallet Team</p>
     `
   },
   kycRequired: {
@@ -76,7 +76,7 @@ const templates: Record<string, { subject: string; html: (params: Record<string,
       <p>Hello,</p>
       <p>To continue with transactions over <strong>$${params.threshold}</strong>, you need to complete identity verification.</p>
       <p>Please log in to your account and follow the prompts to verify your identity.</p>
-      <p>Thanks,<br/>The 4ortinXchange Team</p>
+      <p>Thanks,<br/>The 4ortin-X:Crypto Bitcoin Wallet Team</p>
     `
   },
 };
@@ -105,7 +105,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: '4ortinXchange <onboarding@resend.dev>',
+      from: '4ortin-X:Crypto Bitcoin Wallet <onboarding@resend.dev>',
       to: [normalizedTo],
       subject: emailTemplate.subject,
       html: emailTemplate.html(normalizedParams as Record<string, string | number>),

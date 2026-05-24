@@ -86,7 +86,7 @@ const WalletHome: React.FC<WalletHomeProps> = ({ onSend, onReceive }) => {
   };
 
   return (
-    <div className="flex-1 overflow-auto pb-20 bg-[#0D1117]">
+    <div className="flex-1 bg-app-bg">
       {/* Portfolio Header */}
       <div className="px-4 pt-6 pb-4">
         {/* Network indicator */}
@@ -126,30 +126,30 @@ const WalletHome: React.FC<WalletHomeProps> = ({ onSend, onReceive }) => {
         <div className="grid grid-cols-3 gap-3 mt-6">
           <button 
             onClick={() => onSend()}
-            className="flex flex-col items-center gap-2 bg-[#1A1A2E] hover:bg-[#252542] py-4 rounded-2xl transition-colors"
+            className="flex flex-col items-center gap-2 py-4 rounded-2xl transition-colors bg-card-bg hover:bg-card-hover"
           >
-            <div className="w-12 h-12 bg-[#F0B90B]/10 rounded-full flex items-center justify-center">
-              <Send className="w-6 h-6 text-[#F0B90B]" />
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-accent-light">
+              <Send className="w-6 h-6 text-accent" />
             </div>
             <span className="text-white text-sm font-medium">Send</span>
           </button>
           
           <button 
             onClick={() => onReceive()}
-            className="flex flex-col items-center gap-2 bg-[#1A1A2E] hover:bg-[#252542] py-4 rounded-2xl transition-colors"
+            className="flex flex-col items-center gap-2 py-4 rounded-2xl transition-colors bg-card-bg hover:bg-card-hover"
           >
-            <div className="w-12 h-12 bg-[#F0B90B]/10 rounded-full flex items-center justify-center">
-              <QrCode className="w-6 h-6 text-[#F0B90B]" />
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-accent-light">
+              <QrCode className="w-6 h-6 text-accent" />
             </div>
             <span className="text-white text-sm font-medium">Receive</span>
           </button>
           
           <button 
             onClick={handleSwap}
-            className="flex flex-col items-center gap-2 bg-[#1A1A2E] hover:bg-[#252542] py-4 rounded-2xl transition-colors"
+            className="flex flex-col items-center gap-2 py-4 rounded-2xl transition-colors bg-card-bg hover:bg-card-hover"
           >
-            <div className="w-12 h-12 bg-[#F0B90B]/10 rounded-full flex items-center justify-center">
-              <ArrowDownUp className="w-6 h-6 text-[#F0B90B]" />
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-accent-light">
+              <ArrowDownUp className="w-6 h-6 text-accent" />
             </div>
             <span className="text-white text-sm font-medium">Swap</span>
           </button>
@@ -165,18 +165,18 @@ const WalletHome: React.FC<WalletHomeProps> = ({ onSend, onReceive }) => {
       <div className="px-4 mb-4">
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: { view: 'alerts' } }))}
-          className="w-full flex items-center justify-between p-4 bg-[#1A1A2E] hover:bg-[#252542] rounded-2xl transition-colors"
+          className="w-full flex items-center justify-between p-4 rounded-2xl transition-colors bg-card-bg hover:bg-card-hover"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#F0B90B]/10 rounded-full flex items-center justify-center">
-              <Bell className="w-5 h-5 text-[#F0B90B]" />
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-accent-light">
+              <Bell className="w-5 h-5 text-accent" />
             </div>
             <div className="text-left">
               <p className="text-white font-medium">Price Alerts</p>
               <p className="text-gray-400 text-sm">Get notified on price movements</p>
             </div>
           </div>
-          <span className="text-[#F0B90B] text-sm">Set up →</span>
+          <span className="text-sm text-accent">Set up →</span>
         </button>
       </div>
 
@@ -203,15 +203,15 @@ const WalletHome: React.FC<WalletHomeProps> = ({ onSend, onReceive }) => {
           <h2 className="text-lg font-semibold text-white mb-3">Bitcoin</h2>
           <button
             onClick={() => onReceive('BTC')}
-            className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-[#F7931A]/10 to-[#F7931A]/5 border border-[#F7931A]/20 rounded-2xl transition-colors hover:bg-[#F7931A]/20"
+            className="w-full flex items-center gap-3 p-4 rounded-2xl transition-colors bg-gradient-to-r from-btc/10 to-btc/5 border border-btc/20 hover:bg-btc/20"
           >
-            <div className="w-12 h-12 bg-[#F7931A] rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-btc">
               <span className="text-white font-bold text-lg">₿</span>
             </div>
             <div className="flex-1 text-left">
               <div className="flex items-center gap-2">
                 <span className="text-white font-semibold text-lg">Bitcoin</span>
-                <span className="text-xs bg-[#F7931A]/20 text-[#F7931A] px-2 py-0.5 rounded-full">Native</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-btc/20 text-btc">Native</span>
               </div>
               <div className="text-gray-400 text-sm">
                 {bitcoinPrice > 0 ? `$${bitcoinPrice.toLocaleString()}` : 'Loading...'}
@@ -245,15 +245,15 @@ const WalletHome: React.FC<WalletHomeProps> = ({ onSend, onReceive }) => {
           <h2 className="text-lg font-semibold text-white mb-3">Tron</h2>
           <button
             onClick={() => onReceive('TRX')}
-            className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-[#FF0013]/10 to-[#FF0013]/5 border border-[#FF0013]/20 rounded-2xl transition-colors hover:bg-[#FF0013]/20"
+            className="w-full flex items-center gap-3 p-4 rounded-2xl transition-colors bg-gradient-to-r from-trx/10 to-trx/5 border border-trx/20 hover:bg-trx/20"
           >
-            <div className="w-12 h-12 bg-[#FF0013] rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-trx">
               <span className="text-white font-bold text-lg">T</span>
             </div>
             <div className="flex-1 text-left">
               <div className="flex items-center gap-2">
                 <span className="text-white font-semibold text-lg">Tron</span>
-                <span className="text-xs bg-[#FF0013]/20 text-[#FF0013] px-2 py-0.5 rounded-full">TRX</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-trx/20 text-trx">TRX</span>
               </div>
               <div className="text-gray-400 text-sm">
                 {tronPrice > 0 ? `$${tronPrice.toFixed(4)}` : 'Loading...'}
@@ -281,10 +281,10 @@ const WalletHome: React.FC<WalletHomeProps> = ({ onSend, onReceive }) => {
               {tronBalance.tokens.map((token) => (
                 <div
                   key={token.contractAddress}
-                  className="flex items-center gap-3 p-3 bg-[#1A1A2E] rounded-xl"
+                  className="flex items-center gap-3 p-3 rounded-xl bg-card-bg"
                 >
-                  <div className="w-8 h-8 bg-[#FF0013]/20 rounded-full flex items-center justify-center">
-                    <span className="text-[#FF0013] font-bold text-xs">{token.symbol.slice(0, 2)}</span>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-trx/20">
+                    <span className="font-bold text-xs text-trx">{token.symbol.slice(0, 2)}</span>
                   </div>
                   <div className="flex-1">
                     <span className="text-white text-sm font-medium">{token.symbol}</span>
@@ -305,10 +305,10 @@ const WalletHome: React.FC<WalletHomeProps> = ({ onSend, onReceive }) => {
       <div className="px-4 mt-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white">{chain.name} Assets</h2>
-          <button 
-            onClick={() => setShowAddToken(true)}
-            className="flex items-center gap-1 text-[#F0B90B] text-sm hover:text-[#F0B90B]/80 transition-colors"
-          >
+            <button 
+              onClick={() => setShowAddToken(true)}
+              className="flex items-center gap-1 text-sm transition-colors text-accent hover:text-accent/80"
+            >
             <Plus className="w-4 h-4" />
             Add Token
           </button>
@@ -318,7 +318,7 @@ const WalletHome: React.FC<WalletHomeProps> = ({ onSend, onReceive }) => {
           // Skeleton loader
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-center gap-3 p-4 bg-[#1A1A2E] rounded-2xl animate-pulse">
+              <div key={i} className="flex items-center gap-3 p-4 rounded-2xl animate-pulse bg-card-bg">
                 <div className="w-10 h-10 bg-gray-700 rounded-full" />
                 <div className="flex-1">
                   <div className="w-20 h-4 bg-gray-700 rounded mb-2" />
@@ -350,7 +350,7 @@ const WalletHome: React.FC<WalletHomeProps> = ({ onSend, onReceive }) => {
                 <button
                   key={token.address}
                   onClick={() => onSend(token.symbol)}
-                  className="w-full flex items-center gap-3 p-4 bg-[#1A1A2E] hover:bg-[#252542] rounded-2xl transition-colors"
+                  className="w-full flex items-center gap-3 p-4 rounded-2xl transition-colors bg-card-bg hover:bg-card-hover"
                 >
                   {/* Token Icon */}
                   <div 

@@ -35,21 +35,112 @@ export interface StoredWallet {
 
 const WALLET_STORAGE_KEY = 'x4ortinx_wallet';
 const WALLET_LOCK_KEY = 'x4ortinx_locked';
-const WALLET_VERSION = 2;
+const WALLET_VERSION = 3;
 
-// Simple encryption for demo - in production use proper encryption with user PIN/biometrics
-const encrypt = (data: string, password: string): string => {
-  // In production, use proper AES encryption
-  // For now, base64 encode with a simple XOR
-  const encoded = btoa(data);
-  let result = '';
-  for (let i = 0; i < encoded.length; i++) {
-    result += String.fromCharCode(encoded.charCodeAt(i) ^ password.charCodeAt(i % password.length));
+// ============================================================================
+// Production-Grade Encryption (AES-256-GCM with PBKDF2)
+// ============================================================================
+
+const PBKDF2_ITERATIONS = 600000; // OWASP recommended minimum for PBKDF2-SHA256
+const SALT_LENGTH = 32;
+const IV_LENGTH = 12; // 96 bits for GCM
+const TAG_LENGTH = 128; // bits
+
+// Convert ArrayBuffer to Base64
+const bufferToBase64 = (buffer: ArrayBuffer): string => {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
   }
-  return btoa(result);
+  return btoa(binary);
 };
 
-const decrypt = (encrypted: string, password: string): string => {
+// Convert Base64 to ArrayBuffer
+const base64ToBuffer = (base64: string): ArrayBuffer => {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
+};
+
+// Derive encryption key from password using PBKDF2
+const deriveKey = async (password: string, salt: Uint8Array): Promise<CryptoKey> => {
+  const encoder = new TextEncoder();
+  const passwordKey = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(password),
+    'PBKDF2',
+    false,
+    ['deriveKey']
+  );
+
+  return crypto.subtle.deriveKey(
+    {
+      name: 'PBKDF2',
+      salt: salt.buffer as ArrayBuffer,
+      iterations: PBKDF2_ITERATIONS,
+      hash: 'SHA-256',
+    },
+    passwordKey,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+};
+
+// Encrypt data with AES-256-GCM
+const encrypt = async (data: string, password: string): Promise<string> => {
+  const encoder = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
+  const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
+  
+  const key = await deriveKey(password, salt);
+  
+  const encryptedData = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv, tagLength: TAG_LENGTH },
+    key,
+    encoder.encode(data)
+  );
+
+  // Combine salt + iv + encrypted data
+  const combined = new Uint8Array(salt.length + iv.length + encryptedData.byteLength);
+  combined.set(salt, 0);
+  combined.set(iv, salt.length);
+  combined.set(new Uint8Array(encryptedData), salt.length + iv.length);
+
+  return bufferToBase64(combined.buffer);
+};
+
+// Decrypt data with AES-256-GCM
+const decrypt = async (encrypted: string, password: string): Promise<string> => {
+  try {
+    const combined = new Uint8Array(base64ToBuffer(encrypted));
+    
+    // Extract salt, iv, and encrypted data
+    const salt = combined.slice(0, SALT_LENGTH);
+    const iv = combined.slice(SALT_LENGTH, SALT_LENGTH + IV_LENGTH);
+    const encryptedData = combined.slice(SALT_LENGTH + IV_LENGTH);
+
+    const key = await deriveKey(password, salt);
+    
+    const decryptedData = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv, tagLength: TAG_LENGTH },
+      key,
+      encryptedData
+    );
+
+    const decoder = new TextDecoder();
+    return decoder.decode(decryptedData);
+  } catch {
+    throw new Error('Invalid password');
+  }
+};
+
+// Sync versions for backward compatibility during migration (legacy XOR decrypt only)
+const decryptSync = (encrypted: string, password: string): string => {
   try {
     const decoded = atob(encrypted);
     let result = '';
@@ -117,26 +208,23 @@ export interface DerivedAddresses {
 
 // Derive addresses for all supported chain types from mnemonic
 export const deriveMultiChainAddresses = (mnemonic: string, accountIndex: number = 0): DerivedAddresses => {
-  const mnemonicObj = ethers.Mnemonic.fromPhrase(mnemonic);
-  const seed = mnemonicObj.computeSeed();
-  const seedBytes = hexToBytes(seed);
-  const masterNode = ethers.HDNodeWallet.fromSeed(seedBytes);
+  const cleanMnemonic = mnemonic.trim().toLowerCase();
   
-  // Ethereum/EVM: m/44'/60'/0'/0/index
+  // Ethereum/EVM: m/44'/60'/0'/0/index - use fromPhrase directly
   const ethPath = `${DERIVATION_PATHS.ethereum}/${accountIndex}`;
-  const ethChild = masterNode.derivePath(ethPath);
-  const ethereumAddress = ethChild.address;
+  const ethWallet = ethers.HDNodeWallet.fromPhrase(cleanMnemonic, undefined, ethPath);
+  const ethereumAddress = ethWallet.address;
   
-  // Bitcoin: m/84'/0'/0'/0/index (Native SegWit)
+  // Bitcoin: m/84'/0'/0'/0/index (Native SegWit) - use fromPhrase directly
   const btcPath = `${DERIVATION_PATHS.bitcoin}/${accountIndex}`;
-  const btcChild = masterNode.derivePath(btcPath);
-  const btcPubKey = hexToBytes(btcChild.publicKey);
+  const btcWallet = ethers.HDNodeWallet.fromPhrase(cleanMnemonic, undefined, btcPath);
+  const btcPubKey = hexToBytes(btcWallet.publicKey);
   const bitcoinAddress = pubkeyToBech32Address(btcPubKey);
   
-  // TRON: m/44'/195'/0'/0/index
+  // TRON: m/44'/195'/0'/0/index - use fromPhrase directly
   const tronPath = `${DERIVATION_PATHS.tron}/${accountIndex}`;
-  const tronChild = masterNode.derivePath(tronPath);
-  const tronPrivKey = hexToBytes(tronChild.privateKey);
+  const tronWallet = ethers.HDNodeWallet.fromPhrase(cleanMnemonic, undefined, tronPath);
+  const tronPrivKey = hexToBytes(tronWallet.privateKey);
   const tronPubKeyPoint = secp256k1.ProjectivePoint.fromPrivateKey(tronPrivKey);
   const tronPubKeyUncompressed = tronPubKeyPoint.toRawBytes(false);
   const tronAddress = publicKeyToTronAddress(tronPubKeyUncompressed);
@@ -241,7 +329,7 @@ export const createWallet = async (
   
   const storedWallet: StoredWallet = {
     id: crypto.randomUUID(),
-    encryptedMnemonic: encrypt(mnemonic, password),
+    encryptedMnemonic: await encrypt(mnemonic, password),
     accounts: [{
       id: crypto.randomUUID(),
       address: addresses.ethereum, // Primary address for backwards compat
@@ -290,11 +378,18 @@ export const lockWallet = (): void => {
 };
 
 // Unlock wallet and get mnemonic
-export const unlockWallet = (password: string): string => {
+export const unlockWallet = async (password: string): Promise<string> => {
   const wallet = loadWallet();
   if (!wallet) throw new Error('No wallet found');
   
-  const mnemonic = decrypt(wallet.encryptedMnemonic, password);
+  let mnemonic: string;
+  try {
+    mnemonic = await decrypt(wallet.encryptedMnemonic, password);
+  } catch {
+    // Fallback to legacy XOR decryption for migrated wallets
+    mnemonic = decryptSync(wallet.encryptedMnemonic, password);
+  }
+
   if (!validateMnemonic(mnemonic)) {
     throw new Error('Invalid password');
   }
@@ -333,7 +428,7 @@ export const addAccount = async (
   const wallet = loadWallet();
   if (!wallet) throw new Error('No wallet found');
   
-  const mnemonic = decrypt(wallet.encryptedMnemonic, password);
+  const mnemonic = await decrypt(wallet.encryptedMnemonic, password).catch(() => decryptSync(wallet.encryptedMnemonic, password));
   const newIndex = wallet.accounts.length;
   const addresses = deriveMultiChainAddresses(mnemonic, newIndex);
   const chainAddresses = buildChainAddresses(mnemonic, newIndex);
@@ -389,27 +484,31 @@ export const deleteWallet = (): void => {
 };
 
 // Export mnemonic (requires password)
-export const exportMnemonic = (password: string): string => {
+export const exportMnemonic = async (password: string): Promise<string> => {
   const wallet = loadWallet();
   if (!wallet) throw new Error('No wallet found');
-  return decrypt(wallet.encryptedMnemonic, password);
+  try {
+    return await decrypt(wallet.encryptedMnemonic, password);
+  } catch {
+    return decryptSync(wallet.encryptedMnemonic, password);
+  }
 };
 
 // Get stored mnemonic (same as exportMnemonic but returns null on error)
-export const getStoredMnemonic = (password: string): string | null => {
+export const getStoredMnemonic = async (password: string): Promise<string | null> => {
   try {
-    return exportMnemonic(password);
+    return await exportMnemonic(password);
   } catch {
     return null;
   }
 };
 
 // Verify password is correct
-export const verifyPassword = (password: string): boolean => {
+export const verifyPassword = async (password: string): Promise<boolean> => {
   try {
     const wallet = loadWallet();
     if (!wallet) return false;
-    const mnemonic = decrypt(wallet.encryptedMnemonic, password);
+    const mnemonic = await decrypt(wallet.encryptedMnemonic, password).catch(() => decryptSync(wallet.encryptedMnemonic, password));
     return validateMnemonic(mnemonic);
   } catch {
     return false;
@@ -417,17 +516,17 @@ export const verifyPassword = (password: string): boolean => {
 };
 
 // Change wallet password
-export const changePassword = (currentPassword: string, newPassword: string): boolean => {
+export const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
   try {
     const wallet = loadWallet();
     if (!wallet) return false;
     
     // Decrypt with current password
-    const mnemonic = decrypt(wallet.encryptedMnemonic, currentPassword);
+    const mnemonic = await decrypt(wallet.encryptedMnemonic, currentPassword).catch(() => decryptSync(wallet.encryptedMnemonic, currentPassword));
     if (!validateMnemonic(mnemonic)) return false;
     
     // Re-encrypt with new password
-    wallet.encryptedMnemonic = encrypt(mnemonic, newPassword);
+    wallet.encryptedMnemonic = await encrypt(mnemonic, newPassword);
     localStorage.setItem(WALLET_STORAGE_KEY, JSON.stringify(wallet));
     
     return true;

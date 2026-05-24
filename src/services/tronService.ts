@@ -299,7 +299,8 @@ export const getTronBalance = async (address: string): Promise<TronBalance> => {
 // Get TRX price
 export const getTronPrice = async (): Promise<number> => {
   try {
-    const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tron&vs_currencies=usd');
+    // Use our API proxy to avoid CORS issues
+    const response = await fetch('/api/prices?ids=tron&vs_currencies=usd');
     const data = await response.json();
     return data.tron?.usd || 0;
   } catch (error) {

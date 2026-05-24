@@ -1,28 +1,46 @@
 import React from 'react';
-import { ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, FileText, CheckCircle, Mail } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 
 const TermsOfService: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-app-bg text-white">
       {/* Header */}
-      <div className="sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-gray-800 p-4">
+      <div className="sticky top-0 bg-app-bg/95 backdrop-blur-lg border-b border-gray-800 p-4 z-10">
         <div className="max-w-3xl mx-auto flex items-center gap-4">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 hover:bg-gray-800 rounded-full transition-colors"
+            className="p-2 hover:bg-card-bg rounded-full transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-xl font-bold">Terms of Service</h1>
+          <div className="flex items-center gap-2">
+            <FileText className="w-6 h-6 text-accent" />
+            <h1 className="text-xl font-bold">Terms of Service</h1>
+          </div>
         </div>
       </div>
 
       {/* Content */}
       <div className="max-w-3xl mx-auto p-6 pb-20">
-        <p className="text-gray-400 mb-8">Last updated: February 18, 2026</p>
+        {/* Hero Section */}
+        <div className="bg-card-bg rounded-2xl p-6 mb-8 border border-gray-800">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+              <CheckCircle className="w-6 h-6 text-accent" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white">Agreement to Terms</h2>
+              <p className="text-gray-400 text-sm">Last updated: April 26, 2026</p>
+            </div>
+          </div>
+          <p className="text-gray-300">
+            By using 4ortin-X, you agree to these terms. Please read them carefully before using our 
+            <strong className="text-accent"> non-custodial cryptocurrency wallet</strong> service.
+          </p>
+        </div>
 
         <div className="space-y-8 text-gray-300">
           <section>
@@ -190,11 +208,24 @@ TO THE MAXIMUM EXTENT PERMITTED BY LAW, 4ORTIN-X SHALL NOT BE LIABLE FOR ANY
 
           <section>
             <h2 className="text-xl font-semibold text-white mb-4">14. Contact</h2>
-            <p>
+            <p className="mb-3">
               For questions about these Terms, please contact us at:
             </p>
-            <p className="mt-2 text-[#F0B90B]">support@4ortin-x.com</p>
+            <div className="flex items-center gap-2 text-accent">
+              <Mail className="w-5 h-5" />
+              <a href="mailto:support@4ortin-x.com" className="hover:underline">support@4ortin-x.com</a>
+            </div>
           </section>
+        </div>
+
+        {/* Footer Links */}
+        <div className="mt-12 pt-6 border-t border-gray-800 text-center">
+          <div className="flex items-center justify-center gap-4 text-sm text-gray-400">
+            <Link to="/privacy" className="hover:text-accent transition-colors">Privacy Policy</Link>
+            <span>•</span>
+            <Link to="/" className="hover:text-accent transition-colors">Back to Wallet</Link>
+          </div>
+          <p className="text-gray-600 text-sm mt-4">© 2026 4ortin-X. All rights reserved.</p>
         </div>
       </div>
     </div>

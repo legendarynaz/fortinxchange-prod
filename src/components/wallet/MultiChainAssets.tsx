@@ -120,7 +120,7 @@ const MultiChainAssets: React.FC<MultiChainAssetsProps> = ({ hideBalance = false
       >
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold text-white">Multi-Chain Assets</h2>
-          <span className="text-xs bg-[#F0B90B]/20 text-[#F0B90B] px-2 py-0.5 rounded-full">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-accent-20 text-accent">
             {multiChainAddresses.length} chains
           </span>
         </div>
@@ -147,7 +147,7 @@ const MultiChainAssets: React.FC<MultiChainAssetsProps> = ({ hideBalance = false
             return (
               <div
                 key={chain.symbol}
-                className="bg-[#1A1A2E] rounded-2xl p-4"
+                className="rounded-2xl p-4 bg-card-bg"
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -175,7 +175,7 @@ const MultiChainAssets: React.FC<MultiChainAssetsProps> = ({ hideBalance = false
                 </div>
 
                 {/* Address row */}
-                <div className="flex items-center justify-between bg-[#0D1117] rounded-xl px-3 py-2">
+                <div className="flex items-center justify-between rounded-xl px-3 py-2 bg-app-bg">
                   <p className="text-gray-400 text-xs truncate flex-1 mr-2">
                     {chain.address.slice(0, 12)}...{chain.address.slice(-8)}
                   </p>
@@ -201,7 +201,7 @@ const MultiChainAssets: React.FC<MultiChainAssetsProps> = ({ hideBalance = false
                     {onReceive && (
                       <button
                         onClick={() => onReceive(chain.symbol)}
-                        className="text-xs bg-[#F0B90B]/20 text-[#F0B90B] px-3 py-1.5 rounded-lg hover:bg-[#F0B90B]/30 transition-colors"
+                        className="text-xs px-3 py-1.5 rounded-lg transition-colors bg-accent-20 text-accent hover:bg-accent/30"
                       >
                         Receive
                       </button>

@@ -6,7 +6,6 @@ import {
   createWallet,
   unlockWallet,
   lockWallet,
-  isWalletLocked,
   getActiveAccount,
   setActiveAccount,
   generateMnemonic,
@@ -111,7 +110,9 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const storedWallet = loadWallet();
         setWallet(storedWallet);
         setActiveAccountState(getActiveAccount());
-        setIsLocked(isWalletLocked());
+        // Always treat as locked on page refresh since mnemonic is lost from memory
+        // User must re-enter password to unlock and derive addresses/fetch balances
+        setIsLocked(true);
       }
       
       // Load saved chain preference
@@ -279,7 +280,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const unlock = useCallback(async (password: string): Promise<boolean> => {
     try {
-      const unlockedMnemonic = unlockWallet(password);
+      const unlockedMnemonic = await unlockWallet(password);
       setMnemonic(unlockedMnemonic);
       setIsLocked(false);
       setWallet(loadWallet());

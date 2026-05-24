@@ -13,7 +13,7 @@ interface ChatbotProps {
 
 const Chatbot: React.FC<ChatbotProps> = ({ onClose }) => {
   const [messages, setMessages] = useState<Message[]>([
-    { sender: 'bot', text: "Hello! I'm the 4ortinXchange support assistant. How can I help you today?" }
+    { sender: 'bot', text: "Hello! I'm the 4ortin-X:Crypto Bitcoin Wallet support assistant. How can I help you today?" }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);

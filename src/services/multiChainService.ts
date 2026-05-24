@@ -227,8 +227,9 @@ export const deriveFilecoinAddress = (mnemonic: string, accountIndex: number = 0
     const pubkey = hexToBytes(child.publicKey);
     const hash = sha256(pubkey).slice(0, 20);
     
-    // Simple f1 address format
-    return 'f1' + Buffer.from(hash).toString('hex').slice(0, 38);
+    // Convert hash to hex string (browser-compatible, no Buffer)
+    const hexStr = Array.from(hash).map(b => b.toString(16).padStart(2, '0')).join('');
+    return 'f1' + hexStr.slice(0, 38);
   } catch (error) {
     console.error('Failed to derive Filecoin address:', error);
     return '';
@@ -548,7 +549,7 @@ export const getCardanoBalance = async (_address: string): Promise<MultiChainBal
 // ==================== PRICE FETCHING ====================
 
 /**
- * Fetch prices for multiple tokens from CoinGecko
+ * Fetch prices for multiple tokens from CoinGecko via API proxy
  */
 export const getMultiChainPrices = async (symbols: string[]): Promise<Record<string, number>> => {
   try {
@@ -559,8 +560,9 @@ export const getMultiChainPrices = async (symbols: string[]): Promise<Record<str
     
     if (!ids) return {};
     
+    // Use our API proxy to avoid CORS issues
     const response = await fetch(
-      `${APIS.COINGECKO}/simple/price?ids=${ids}&vs_currencies=usd`
+      `/api/prices?ids=${ids}&vs_currencies=usd`
     );
     const data = await response.json();
     
@@ -579,15 +581,16 @@ export const getMultiChainPrices = async (symbols: string[]): Promise<Record<str
 };
 
 /**
- * Get price for a single token
+ * Get price for a single token via API proxy
  */
 export const getTokenPrice = async (symbol: string): Promise<number> => {
   const id = COINGECKO_IDS[symbol.toUpperCase()];
   if (!id) return 0;
   
   try {
+    // Use our API proxy to avoid CORS issues
     const response = await fetch(
-      `${APIS.COINGECKO}/simple/price?ids=${id}&vs_currencies=usd`
+      `/api/prices?ids=${id}&vs_currencies=usd`
     );
     const data = await response.json();
     return data[id]?.usd || 0;

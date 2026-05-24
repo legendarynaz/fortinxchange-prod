@@ -77,7 +77,7 @@ const AdminView: React.FC<{ onConfigChange: () => void }> = ({ onConfigChange })
         <div className="w-full max-w-sm">
           <div className="flex justify-center items-center gap-3 mb-6">
             <LogoIcon />
-            <h1 className="text-3xl font-bold tracking-tighter">4ortinXchange Admin</h1>
+            <h1 className="text-3xl font-bold tracking-tighter">4ortin-X:Crypto Bitcoin Wallet Admin</h1>
           </div>
           <Card className="!bg-slate-700 !border-slate-600">
             <form onSubmit={handleLogin} className="space-y-4">

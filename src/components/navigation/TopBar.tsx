@@ -48,18 +48,19 @@ const TopBar: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-black/20 border-b border-white/10">
+      <header className="sticky top-0 z-40 backdrop-blur-xl border-b border-white/10 bg-black/80">
         <div className="flex items-center justify-between h-14 px-4 max-w-lg mx-auto">
           {/* Logo and Address */}
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="absolute inset-0 bg-[#F0B90B]/30 blur-lg rounded-full" />
+              <div className="absolute inset-0 blur-lg rounded-full" style={{ backgroundColor: 'rgba(240, 185, 11, 0.3)' }} />
               <LogoIcon size={32} />
             </div>
             {activeAccount && (
               <button
                 onClick={handleCopyAddress}
-                className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 px-2.5 py-1.5 rounded-xl transition-all duration-300"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl transition-all duration-300"
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)' }}
               >
                 <span className="text-sm text-gray-300">
                   {formatAddress(activeAccount.address, 4)}
@@ -80,18 +81,18 @@ const TopBar: React.FC = () => {
           <div className="flex items-center gap-1">
             <button 
               onClick={() => setShowScanner(true)}
-              className="p-2 hover:bg-white/10 rounded-xl transition-all duration-300 border border-transparent hover:border-white/10"
+              className="p-2 rounded-xl transition-all duration-300"
               title="Scan QR Code"
             >
               <Scan className="w-5 h-5 text-gray-400" />
             </button>
             <button 
               onClick={() => setShowNotifications(true)}
-              className="p-2 hover:bg-white/10 rounded-xl transition-all duration-300 border border-transparent hover:border-white/10 relative"
+              className="p-2 rounded-xl transition-all duration-300 relative"
               title="Notifications"
             >
               <Bell className="w-5 h-5 text-gray-400" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-[#F0B90B] rounded-full animate-pulse" />
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#F0B90B' }} />
             </button>
           </div>
         </div>

@@ -1,3 +1,19 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  /* 4ortin-X brand colors */
+  --color-app-bg: #0D1117;
+  --color-card-bg: #1A1A2E;
+  --color-card-hover: #252542;
+  --color-accent: #F0B90B;
+  --color-accent-light: rgba(240, 185, 11, 0.1);
+  --color-accent-20: rgba(240, 185, 11, 0.2);
+  
+  /* Chain colors */
+  --color-btc: #F7931A;
+  --color-btc-light: rgba(247, 147, 26, 0.1);
+  --color-trx: #FF0013;
+  --color-trx-light: rgba(255, 0, 19, 0.1);
+  --color-eth: #627EEA;
+  --color-sol: #9945FF;
+}

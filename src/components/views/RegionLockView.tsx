@@ -16,11 +16,11 @@ const RegionLockView: React.FC<RegionLockViewProps> = ({ onLogout }) => {
       </div>
       <div className="flex justify-center items-center gap-3 mb-4">
         <LogoIcon />
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tighter">4ortinXchange</h1>
+        <h1 className="text-3xl font-bold text-slate-900 tracking-tighter">4ortin-X:Crypto Bitcoin Wallet</h1>
       </div>
       <h2 className="text-2xl font-bold text-slate-800 mt-4">Service Not Available</h2>
       <p className="text-slate-600 mt-2 max-w-md mb-8">
-        We're sorry, but 4ortinXchange services are not currently available in your region. We are working to expand our services and hope to support your region in the future.
+        We're sorry, but 4ortin-X:Crypto Bitcoin Wallet services are not currently available in your region. We are working to expand our services and hope to support your region in the future.
       </p>
       <Button variant="secondary" onClick={onLogout}>Logout</Button>
     </div>

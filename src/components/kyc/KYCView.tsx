@@ -163,7 +163,7 @@ const KYCView: React.FC<KYCViewProps> = ({ onVerificationComplete }) => {
             );
         case 'success':
             return (
-                 <StepContainer title="Verification Successful!" subtitle="Your identity has been verified. You now have full access to all features on 4ortinXchange.">
+                 <StepContainer title="Verification Successful!" subtitle="Your identity has been verified. You now have full access to all features on 4ortin-X:Crypto Bitcoin Wallet.">
                     <CheckCircleIcon className="w-20 h-20 text-green-500 mx-auto mb-6" />
                     <Button onClick={onVerificationComplete} className="w-full">Go to Dashboard</Button>
                 </StepContainer>
@@ -182,7 +182,7 @@ const KYCView: React.FC<KYCViewProps> = ({ onVerificationComplete }) => {
     <div className="min-h-screen bg-sky-50 flex flex-col items-center justify-center p-4">
         <div className="absolute top-6 flex items-center gap-3">
              <LogoIcon />
-             <h1 className="text-2xl font-bold text-slate-900 tracking-tighter">4ortinXchange</h1>
+             <h1 className="text-2xl font-bold text-slate-900 tracking-tighter">4ortin-X:Crypto Bitcoin Wallet</h1>
         </div>
       {renderContent()}
     </div>

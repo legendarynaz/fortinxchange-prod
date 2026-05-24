@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.4ortinx.wallet',
-  appName: '4ortin-X',
+  appId: 'com.x4ortinx.app',
+  appName: '4ortin-X:Crypto Bitcoin Wallet',
   webDir: 'dist',
   ios: {
     contentInset: 'automatic',

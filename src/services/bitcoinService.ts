@@ -37,6 +37,24 @@ export interface BitcoinTransaction {
   value: number;
 }
 
+// Helper: Convert hex string to Uint8Array (browser-compatible, no Buffer)
+const hexToBytes = (hexStr: string): Uint8Array => {
+  const cleanHex = hexStr.startsWith('0x') ? hexStr.slice(2) : hexStr;
+  if (cleanHex.length === 0) return new Uint8Array(0);
+  if (cleanHex.length % 2 !== 0) {
+    throw new Error('Invalid hex string length');
+  }
+  const bytes = new Uint8Array(cleanHex.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    const byte = parseInt(cleanHex.substring(i * 2, i * 2 + 2), 16);
+    if (isNaN(byte)) {
+      throw new Error(`Invalid hex character at position ${i * 2}`);
+    }
+    bytes[i] = byte;
+  }
+  return bytes;
+};
+
 // Helper: Convert bytes to bech32 address (Native SegWit P2WPKH)
 const pubkeyToBech32Address = (pubkey: Uint8Array): string => {
   // Step 1: SHA256 of public key
@@ -54,41 +72,48 @@ const pubkeyToBech32Address = (pubkey: Uint8Array): string => {
   return bech32.encode('bc', words);
 };
 
-// Helper: Convert hex string to Uint8Array
-const hexToBytes = (hexStr: string): Uint8Array => {
-  const cleanHex = hexStr.startsWith('0x') ? hexStr.slice(2) : hexStr;
-  const bytes = new Uint8Array(cleanHex.length / 2);
-  for (let i = 0; i < bytes.length; i++) {
-    bytes[i] = parseInt(cleanHex.substr(i * 2, 2), 16);
-  }
-  return bytes;
-};
-
 // Derive Bitcoin address from mnemonic (BIP84 - Native SegWit) - SYNCHRONOUS
 export const deriveBitcoinAddress = (mnemonic: string, accountIndex: number = 0): {
   address: string;
   publicKey: Uint8Array;
 } => {
-  // Use ethers to derive the key - all sync operations
-  const mnemonicObj = ethers.Mnemonic.fromPhrase(mnemonic);
-  const seed = mnemonicObj.computeSeed();
-  const seedBuffer = hexToBytes(seed);
-  
-  // BIP84 path: m/84'/0'/0'/0/accountIndex
-  const masterNode = ethers.HDNodeWallet.fromSeed(seedBuffer);
-  const path = `m/84'/0'/0'/0/${accountIndex}`;
-  const child = masterNode.derivePath(path);
-  
-  // Get the compressed public key (33 bytes)
-  const publicKey = hexToBytes(child.publicKey);
-  
-  // Create native SegWit (bech32) address
-  const address = pubkeyToBech32Address(publicKey);
-  
-  return {
-    address,
-    publicKey,
-  };
+  try {
+    console.log('[Bitcoin] Deriving address for account', accountIndex);
+    
+    // Validate mnemonic first
+    if (!mnemonic || typeof mnemonic !== 'string') {
+      throw new Error('Invalid mnemonic: must be a non-empty string');
+    }
+    
+    const cleanMnemonic = mnemonic.trim().toLowerCase();
+    
+    // BIP84 path for Native SegWit: m/84'/0'/0'/0/index
+    const path = `m/84'/0'/0'/0/${accountIndex}`;
+    
+    // Use ethers.HDNodeWallet.fromPhrase directly - this is the recommended approach in ethers v6
+    // It handles seed derivation internally and is more reliable
+    const hdWallet = ethers.HDNodeWallet.fromPhrase(cleanMnemonic, undefined, path);
+    
+    console.log('[Bitcoin] HD wallet created, publicKey:', hdWallet.publicKey?.slice(0, 20) + '...');
+    
+    // Get the compressed public key (33 bytes)
+    const publicKey = hexToBytes(hdWallet.publicKey);
+    
+    console.log('[Bitcoin] Public key bytes length:', publicKey.length);
+    
+    // Create native SegWit (bech32) address
+    const address = pubkeyToBech32Address(publicKey);
+    
+    console.log('[Bitcoin] Address derived:', address);
+    
+    return {
+      address,
+      publicKey,
+    };
+  } catch (error) {
+    console.error('[Bitcoin] deriveBitcoinAddress failed:', error);
+    throw error;
+  }
 };
 
 // Get Bitcoin balance from Blockstream API
@@ -231,7 +256,8 @@ export const isValidBitcoinAddress = (address: string): boolean => {
 // Get Bitcoin price in USD
 export const getBitcoinPrice = async (): Promise<number> => {
   try {
-    const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+    // Use our API proxy to avoid CORS issues
+    const response = await fetch('/api/prices?ids=bitcoin&vs_currencies=usd');
     const data = await response.json();
     return data.bitcoin?.usd || 0;
   } catch {
@@ -276,23 +302,19 @@ export const deriveBitcoinKeyPair = async (mnemonic: string, accountIndex: numbe
   console.log('[Bitcoin] Deriving key pair...');
   
   try {
-    // Use ethers to derive the key
-    const mnemonicObj = ethers.Mnemonic.fromPhrase(mnemonic);
-    const seed = mnemonicObj.computeSeed();
-    const seedBuffer = new Uint8Array(Buffer.from(seed.slice(2), 'hex'));
+    const cleanMnemonic = mnemonic.trim().toLowerCase();
     
-    // BIP84 path: m/84'/0'/0'/0/accountIndex
-    const masterNode = ethers.HDNodeWallet.fromSeed(seedBuffer);
+    // BIP84 path for Native SegWit: m/84'/0'/0'/0/index
     const path = `m/84'/0'/0'/0/${accountIndex}`;
-    const child = masterNode.derivePath(path);
+    
+    // Use ethers.HDNodeWallet.fromPhrase directly
+    const hdWallet = ethers.HDNodeWallet.fromPhrase(cleanMnemonic, undefined, path);
     
     // Get the private key (32 bytes)
-    const privateKeyHex = child.privateKey.slice(2); // Remove '0x' prefix
-    const privateKey = new Uint8Array(Buffer.from(privateKeyHex, 'hex'));
+    const privateKey = hexToBytes(hdWallet.privateKey);
     
     // Get the compressed public key (33 bytes)
-    const publicKeyHex = child.publicKey.slice(2); // Remove '0x' prefix
-    const publicKey = new Uint8Array(Buffer.from(publicKeyHex, 'hex'));
+    const publicKey = hexToBytes(hdWallet.publicKey);
     
     // Create native SegWit (bech32) address
     const address = pubkeyToBech32Address(publicKey);

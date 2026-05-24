@@ -21,7 +21,7 @@ const SecurityPage: React.FC = () => {
             <div>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Bank-Grade Security</h2>
               <p className="text-slate-600 dark:text-slate-300">
-                4ortinXchange employs multiple layers of security to protect your assets and personal information. We use industry-standard encryption and security practices.
+                4ortin-X:Crypto Bitcoin Wallet employs multiple layers of security to protect your assets and personal information. We use industry-standard encryption and security practices.
               </p>
             </div>
           </div>
@@ -167,7 +167,7 @@ const SecurityPage: React.FC = () => {
               <div>
                 <h4 className="font-medium text-slate-900 dark:text-white">Beware of Phishing</h4>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Always verify you're on the official 4ortinXchange website. We will never ask for your password via email.
+                  Always verify you're on the official 4ortin-X:Crypto Bitcoin Wallet website. We will never ask for your password via email.
                 </p>
               </div>
             </div>

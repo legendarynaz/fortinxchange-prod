@@ -1,28 +1,46 @@
 import React from 'react';
-import { ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Shield, Lock, Mail } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 
 const PrivacyPolicy: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-app-bg text-white">
       {/* Header */}
-      <div className="sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-gray-800 p-4">
+      <div className="sticky top-0 bg-app-bg/95 backdrop-blur-lg border-b border-gray-800 p-4 z-10">
         <div className="max-w-3xl mx-auto flex items-center gap-4">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 hover:bg-gray-800 rounded-full transition-colors"
+            className="p-2 hover:bg-card-bg rounded-full transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-xl font-bold">Privacy Policy</h1>
+          <div className="flex items-center gap-2">
+            <Shield className="w-6 h-6 text-accent" />
+            <h1 className="text-xl font-bold">Privacy Policy</h1>
+          </div>
         </div>
       </div>
 
       {/* Content */}
       <div className="max-w-3xl mx-auto p-6 pb-20">
-        <p className="text-gray-400 mb-8">Last updated: February 18, 2026</p>
+        {/* Hero Section */}
+        <div className="bg-card-bg rounded-2xl p-6 mb-8 border border-gray-800">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+              <Lock className="w-6 h-6 text-accent" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white">Your Privacy Matters</h2>
+              <p className="text-gray-400 text-sm">Last updated: April 26, 2026</p>
+            </div>
+          </div>
+          <p className="text-gray-300">
+            4ortin-X is a <strong className="text-accent">non-custodial wallet</strong>. This means we never have access to your private keys, 
+            recovery phrase, or funds. Your security is in your hands.
+          </p>
+        </div>
 
         <div className="space-y-8 text-gray-300">
           <section>
@@ -224,8 +242,21 @@ const PrivacyPolicy: React.FC = () => {
             <p className="mb-3">
               If you have questions about this Privacy Policy or our data practices, contact us at:
             </p>
-            <p className="text-[#F0B90B]">privacy@4ortin-x.com</p>
+            <div className="flex items-center gap-2 text-accent">
+              <Mail className="w-5 h-5" />
+              <a href="mailto:privacy@4ortin-x.com" className="hover:underline">privacy@4ortin-x.com</a>
+            </div>
           </section>
+        </div>
+
+        {/* Footer Links */}
+        <div className="mt-12 pt-6 border-t border-gray-800 text-center">
+          <div className="flex items-center justify-center gap-4 text-sm text-gray-400">
+            <Link to="/terms" className="hover:text-accent transition-colors">Terms of Service</Link>
+            <span>•</span>
+            <Link to="/" className="hover:text-accent transition-colors">Back to Wallet</Link>
+          </div>
+          <p className="text-gray-600 text-sm mt-4">© 2026 4ortin-X. All rights reserved.</p>
         </div>
       </div>
     </div>
