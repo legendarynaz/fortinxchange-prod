@@ -1,9 +1,16 @@
 /**
  * Coinbase Advanced Trade API Service
  * Handles live trading, account balances, order book, and market data
+ *
+ * SECURITY WARNING: This service currently uses client-side API credentials.
+ * In production, authenticated endpoints (trading, balances) should be proxied
+ * through server-side API routes to protect API secrets.
+ * Public market data endpoints are safe to call directly from the client.
  */
 
-// API Configuration - Set these in environment variables
+// API Configuration
+// WARNING: These credentials are exposed in the browser if set with VITE_ prefix.
+// For production, remove VITE_ prefix and proxy through backend API routes.
 const COINBASE_API_KEY = import.meta.env.VITE_COINBASE_API_KEY || '';
 const COINBASE_API_SECRET = import.meta.env.VITE_COINBASE_API_SECRET || '';
 

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff, Fingerprint, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Eye, EyeOff, Fingerprint, AlertCircle, Clock } from 'lucide-react';
 import { useWallet } from '../../context/WalletContext';
 import { formatAddress } from '../../services/walletService';
+import { isLockedOut, recordFailedAttempt, clearAttempts, getLockoutTimeRemaining } from '../../services/securityService';
 import Logo from '../common/Logo';
 
 interface UnlockScreenProps {
@@ -16,8 +17,36 @@ const UnlockScreen: React.FC<UnlockScreenProps> = ({ onUnlock, onReset }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [lockoutRemaining, setLockoutRemaining] = useState(0);
+
+  const userId = activeAccount?.address || 'default';
+
+  useEffect(() => {
+    // Check lockout on mount and update timer
+    const checkLockout = () => {
+      const remaining = getLockoutTimeRemaining(userId);
+      setLockoutRemaining(remaining);
+    };
+    checkLockout();
+    const interval = setInterval(checkLockout, 1000);
+    return () => clearInterval(interval);
+  }, [userId]);
+
+  const formatLockoutTime = (ms: number) => {
+    const hours = Math.floor(ms / (60 * 60 * 1000));
+    const minutes = Math.floor((ms % (60 * 60 * 1000)) / (60 * 1000));
+    const seconds = Math.floor((ms % (60 * 1000)) / 1000);
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    if (minutes > 0) return `${minutes}m ${seconds}s`;
+    return `${seconds}s`;
+  };
 
   const handleUnlock = async () => {
+    if (isLockedOut(userId)) {
+      setError('Too many failed attempts. Please wait before trying again.');
+      return;
+    }
+
     if (!password.trim()) {
       setError('Please enter your password');
       return;
@@ -29,9 +58,15 @@ const UnlockScreen: React.FC<UnlockScreenProps> = ({ onUnlock, onReset }) => {
     const success = await unlock(password);
     
     if (success) {
+      clearAttempts(userId);
       onUnlock();
     } else {
-      setError('Incorrect password. Please try again.');
+      recordFailedAttempt(userId);
+      if (isLockedOut(userId)) {
+        setError('Too many failed attempts. Your wallet is temporarily locked.');
+      } else {
+        setError('Incorrect password. Please try again.');
+      }
     }
     
     setIsLoading(false);
@@ -94,7 +129,7 @@ const UnlockScreen: React.FC<UnlockScreenProps> = ({ onUnlock, onReset }) => {
           <Logo size="lg" />
         </div>
 
-        <h1 className="text-2xl font-bold text-white mb-2">Welcome Back</h1>
+        <h1 className="text-2xl font-bold text-white mb-2">Unlock your 4ortin-X wallet</h1>
         
         {activeAccount && (
           <div className="bg-[#1A1A2E] rounded-xl px-4 py-2 mb-6">
@@ -128,20 +163,27 @@ const UnlockScreen: React.FC<UnlockScreenProps> = ({ onUnlock, onReset }) => {
             </div>
           )}
 
-          <button
-            onClick={handleUnlock}
-            disabled={isLoading}
-            className="w-full bg-[#F0B90B] hover:bg-[#F0B90B]/90 disabled:bg-gray-700 text-black font-semibold py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
-          >
-            {isLoading ? (
-              <>
-                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                Unlocking...
-              </>
-            ) : (
-              'Unlock'
-            )}
-          </button>
+          {lockoutRemaining > 0 ? (
+            <div className="w-full bg-red-500/20 border border-red-500/40 text-red-400 font-semibold py-4 rounded-xl flex items-center justify-center gap-2">
+              <Clock className="w-5 h-5" />
+              Locked for {formatLockoutTime(lockoutRemaining)}
+            </div>
+          ) : (
+            <button
+              onClick={handleUnlock}
+              disabled={isLoading}
+              className="w-full bg-[#F0B90B] hover:bg-[#F0B90B]/90 disabled:bg-gray-700 text-black font-semibold py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  Unlocking...
+                </>
+              ) : (
+                'Secure Access'
+              )}
+            </button>
+          )}
 
           {/* Biometric button placeholder */}
           <button

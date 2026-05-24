@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useWallet } from '../../context/WalletContext';
 import { validateMnemonic } from '../../services/walletService';
+import { validatePassword } from '../../utils/sanitize';
 
 type Step = 'phrase' | 'password';
 
@@ -61,9 +62,12 @@ const ImportWalletFlow: React.FC<ImportWalletFlowProps> = ({ onBack, onComplete 
     setStep('password');
   };
 
+  const passwordValidation = validatePassword(password);
+
   const handleImport = async () => {
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+    if (!passwordValidation.isValid) {
+      const errors = [...passwordValidation.errors, ...passwordValidation.suggestions.slice(0, 2)];
+      setError(errors.join('. ') || 'Password is too weak');
       return;
     }
     
@@ -263,6 +267,13 @@ const ImportWalletFlow: React.FC<ImportWalletFlowProps> = ({ onBack, onComplete 
             <p className="text-red-500 text-sm">{error}</p>
           </div>
         )}
+
+        <div className="mt-6 text-gray-500 text-sm space-y-1">
+          <p className={password.length >= 8 ? 'text-green-500' : ''}>• Minimum 8 characters</p>
+          <p className={/[A-Z]/.test(password) && /[a-z]/.test(password) ? 'text-green-500' : ''}>• Upper and lowercase letters</p>
+          <p className={/[0-9]/.test(password) ? 'text-green-500' : ''}>• At least one number</p>
+          <p className={/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? 'text-green-500' : ''}>• At least one special character</p>
+        </div>
       </div>
 
       <div className="p-6">

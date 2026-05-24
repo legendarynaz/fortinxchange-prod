@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { applyApiSecurity, normalizeEmail, normalizeString, safeJsonObject } from './_utils/security';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -81,27 +82,33 @@ const templates: Record<string, { subject: string; html: (params: Record<string,
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (!applyApiSecurity(req, res, {
+    methods: ['POST'],
+    rateLimit: { key: 'send-email', max: 20, windowMs: 60 * 1000 },
+  })) {
+    return;
   }
 
   const { to, template, params } = req.body;
+  const normalizedTo = normalizeEmail(to);
+  const normalizedTemplate = normalizeString(template, 40);
+  const normalizedParams = safeJsonObject(params || {}, 2000);
 
-  if (!to || !template) {
-    return res.status(400).json({ error: 'Missing required fields: to, template' });
+  if (!normalizedTo || !normalizedTemplate || !normalizedParams) {
+    return res.status(400).json({ error: 'Invalid email request' });
   }
 
-  const emailTemplate = templates[template];
+  const emailTemplate = templates[normalizedTemplate];
   if (!emailTemplate) {
-    return res.status(400).json({ error: `Unknown template: ${template}` });
+    return res.status(400).json({ error: 'Unknown template' });
   }
 
   try {
     const { data, error } = await resend.emails.send({
       from: '4ortinXchange <onboarding@resend.dev>',
-      to: [to],
+      to: [normalizedTo],
       subject: emailTemplate.subject,
-      html: emailTemplate.html(params || {}),
+      html: emailTemplate.html(normalizedParams as Record<string, string | number>),
     });
 
     if (error) {

@@ -8,32 +8,43 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 // Fee Configuration
 export const FEE_CONFIG = {
-  // Swap fee percentage (0.5% = 50 basis points)
+  // Swap fee percentage - DEFAULT 0.5% (50 basis points)
   SWAP_FEE_PERCENT: 0.5,
-  
+
+  // Fee in basis points for 1inch API (50 = 0.5%)
+  SWAP_FEE_BASIS_POINTS: 50,
+
   // Minimum swap amount to charge fee (in USD)
   MIN_SWAP_FOR_FEE: 10,
-  
-  // Fee wallet address - REPLACE WITH YOUR ACTUAL WALLET
+
+  // Fee wallet address - receives swap fees automatically from 1inch
+  // IMPORTANT: Set VITE_FEE_WALLET in your .env file!
   FEE_WALLET: import.meta.env.VITE_FEE_WALLET || '0x742d35Cc6634C0532925a3b844Bc9e7595f5bE21',
-  
-  // Fee tiers (optional - for premium users)
+
+  // Fee tiers - for premium users
   FEE_TIERS: {
-    standard: 0.5,    // 0.5% for regular users
-    premium: 0.3,     // 0.3% for premium subscribers
-    vip: 0.1,         // 0.1% for VIP/high volume
+    standard: 0.5,    // 0.5% for regular users (50 bps)
+    premium: 0.3,     // 0.3% for premium subscribers (30 bps)
+    vip: 0.1,         // 0.1% for VIP/high volume (10 bps)
   },
-  
+
+  // Fee tiers in basis points (for 1inch API)
+  FEE_TIERS_BPS: {
+    standard: 50,     // 50 basis points = 0.5%
+    premium: 30,      // 30 basis points = 0.3%
+    vip: 10,          // 10 basis points = 0.1%
+  },
+
   // On-ramp partner fees (our cut from partner's fee)
   ONRAMP_COMMISSION: {
     moonpay: 0.5,     // 0.5% of transaction
     transak: 0.5,
     simplex: 0.4,
   },
-  
+
   // Bridge fees
   BRIDGE_FEE_PERCENT: 0.1,
-  
+
   // NFT marketplace fee
   NFT_FEE_PERCENT: 2.5,
 };
@@ -65,16 +76,16 @@ export const calculateSwapFee = (
 ): FeeCalculation => {
   const feePercent = FEE_CONFIG.FEE_TIERS[userTier];
   const outputBigInt = BigInt(outputAmount);
-  
+
   // Calculate fee in token units
   const feeBasisPoints = BigInt(Math.round(feePercent * 100)); // 0.5% = 50
   const feeAmount = (outputBigInt * feeBasisPoints) / BigInt(10000);
   const netOutputAmount = outputBigInt - feeAmount;
-  
+
   // Calculate fee in USD
   const feeFormatted = Number(ethers.formatUnits(feeAmount, outputDecimals));
   const feeInUSD = feeFormatted * outputPriceUSD;
-  
+
   return {
     inputAmount: outputAmount,
     outputAmount: outputAmount,
@@ -94,7 +105,7 @@ export const estimateSwapFee = (
   const feePercent = FEE_CONFIG.FEE_TIERS[userTier];
   const feeAmount = estimatedOutput * (feePercent / 100);
   const netOutput = estimatedOutput - feeAmount;
-  
+
   return {
     feeAmount,
     feePercent,
@@ -109,7 +120,7 @@ export const buildSwapWithFee = (
   userTier: 'standard' | 'premium' | 'vip' = 'standard'
 ): SwapWithFee => {
   const feeCalc = calculateSwapFee(toAmount, toDecimals, 1, userTier);
-  
+
   return {
     fromAmount: toAmount,
     toAmount: toAmount,
@@ -167,12 +178,12 @@ export interface RevenueEvent {
 // Store revenue event - sends to backend API
 export const trackRevenueEvent = async (event: RevenueEvent): Promise<void> => {
   console.log('[Revenue]', event);
-  
+
   // Store locally as backup
   const events = JSON.parse(localStorage.getItem('4ortinx_revenue_events') || '[]');
   events.push(event);
   localStorage.setItem('4ortinx_revenue_events', JSON.stringify(events.slice(-100)));
-  
+
   // Send to backend
   try {
     const response = await fetch(`${API_URL}/fees/record`, {
@@ -191,7 +202,7 @@ export const trackRevenueEvent = async (event: RevenueEvent): Promise<void> => {
         metadata: { timestamp: event.timestamp },
       }),
     });
-    
+
     if (!response.ok) {
       console.warn('Failed to record fee on backend:', await response.text());
     }
@@ -211,30 +222,31 @@ export const getRevenueSummary = (): {
   const events: RevenueEvent[] = JSON.parse(
     localStorage.getItem('4ortinx_revenue_events') || '[]'
   );
-  
+
   const now = Date.now();
   const day = 24 * 60 * 60 * 1000;
-  
+
   let total = 0;
   let last24h = 0;
   let last7d = 0;
   const byType: Record<string, number> = {};
-  
+
   events.forEach(event => {
     total += event.amount;
     byType[event.type] = (byType[event.type] || 0) + event.amount;
-    
+
     if (now - event.timestamp < day) last24h += event.amount;
     if (now - event.timestamp < 7 * day) last7d += event.amount;
   });
-  
+
   return { total, byType, last24h, last7d };
 };
 
 // Premium subscription check - checks backend API
 export const getUserTier = async (address: string): Promise<'standard' | 'premium' | 'vip'> => {
   try {
-    const response = await fetch(`${API_URL}/fees/tier/${address.toLowerCase()}`);
+    const params = new URLSearchParams({ address: address.toLowerCase() });
+    const response = await fetch(`${API_URL}/fees/tier?${params}`);
     if (response.ok) {
       const data = await response.json();
       return data.tier || 'standard';
@@ -242,7 +254,7 @@ export const getUserTier = async (address: string): Promise<'standard' | 'premiu
   } catch (error) {
     console.warn('Failed to fetch user tier:', error);
   }
-  
+
   // Fallback to local storage
   const premiumUsers = JSON.parse(localStorage.getItem('4ortinx_premium_users') || '{}');
   return premiumUsers[address.toLowerCase()] || 'standard';
@@ -256,7 +268,7 @@ export const getUserTierSync = (address: string): 'standard' | 'premium' | 'vip'
 
 // Set user tier (admin function)
 export const setUserTier = (
-  address: string, 
+  address: string,
   tier: 'standard' | 'premium' | 'vip'
 ): void => {
   const premiumUsers = JSON.parse(localStorage.getItem('4ortinx_premium_users') || '{}');
@@ -288,7 +300,7 @@ export const getUserFeeHistory = async (address: string): Promise<RevenueEvent[]
   } catch (error) {
     console.warn('Failed to fetch fee history:', error);
   }
-  
+
   // Fallback to local storage
   return JSON.parse(localStorage.getItem('4ortinx_revenue_events') || '[]');
 };
